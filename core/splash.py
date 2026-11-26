@@ -42,20 +42,20 @@ def _fit_font(path, text, start, max_w):
 
 def render_splash(base_img, ip, port=5000):
     img = base_img.point(lambda v: v // 6)  # dim the map to a backdrop
-    # Title: fitted to the full width, then stretched slightly
-    # vertically - the word already spans the canvas edge to edge, so
-    # height is the only direction left to grow. 1.5x read as huge and
-    # out of proportion on the wall; 1.25x is the balance (Mark).
-    font = _fit_font(FONT_BOLD, TITLE, 64, 248)
+    # Title: fitted to a comfortable width with a slight vertical
+    # stretch. Full-width (248px) at 1.5x read as huge on the wall,
+    # and 1.25x was not visibly smaller (Mark) - so the word now sits
+    # narrower AND shorter, with margins on both sides.
+    font = _fit_font(FONT_BOLD, TITLE, 64, 216)
     layer = Image.new("RGBA", (CANVAS_W, 84), (0, 0, 0, 0))
     ld = ImageDraw.Draw(layer)
     w = ld.textlength(TITLE, font=font)
     ld.text(((CANVAS_W - w) / 2, 0), TITLE, font=font,
             fill=(255, 176, 0, 255))
     layer = layer.crop(layer.getbbox())
-    layer = layer.resize((layer.width, int(layer.height * 1.25)),
+    layer = layer.resize((layer.width, int(layer.height * 1.1)),
                          Image.LANCZOS)
-    img.paste(layer, ((CANVAS_W - layer.width) // 2, 10), layer)
+    img.paste(layer, ((CANVAS_W - layer.width) // 2, 16), layer)
     d = ImageDraw.Draw(img)
     _centred(d, 98, SUBTITLE, _font(FONT, 15), (200, 210, 220))
     _centred(d, 132, "Admin page:", _font(FONT, 12), (140, 150, 160))
