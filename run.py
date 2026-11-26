@@ -10,6 +10,7 @@ import os
 import sys
 import threading
 import time
+import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -48,14 +49,23 @@ def main():
     threading.Thread(target=update_checker, args=(state,), daemon=True).start()
 
     while True:
-        module.refresh_data()
-        frame = module.draw(None)
-        state.frame = frame
-        state.stations = len(module.metars)
-        state.dots = module.dot_count
-        state.last_fetch = time.time()
-        display.show(frame, "weather")
-        time.sleep(cfg["refresh_s"])
+        try:
+            module.refresh_data()
+            frame = module.draw(None)
+            state.frame = frame
+            state.stations = len(module.metars)
+            state.dots = module.dot_count
+            state.last_fetch = time.time()
+            display.show(frame, "weather")
+            delay = cfg["refresh_s"]
+        except Exception:
+            # A bad cycle must never wedge or kill the wall (the v1
+            # failure Mark worked around with a nightly reboot): keep
+            # the last good frame on the panels, log the cause, and
+            # retry soon instead of waiting out the full interval.
+            traceback.print_exc()
+            delay = 30
+        time.sleep(delay)
 
 
 if __name__ == "__main__":
