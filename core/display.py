@@ -41,6 +41,17 @@ class MatrixDisplay:
         options.hardware_mapping = "regular"  # proven on Mark's HAT (v1 uses it)
         options.gpio_slowdown = gpio_slowdown
         options.brightness = brightness
+        # The hzeller library drops the process to the 'daemon' user
+        # after GPIO setup (that is why v1's map runs as daemon). In a
+        # single-process app like this one the drop also disowns the
+        # admin server and the module loop, which then cannot write
+        # config.json or the base-map cache into the pi-owned checkout.
+        # Keep root: this Pi runs only Mark's code. (Bench find,
+        # Nov 2026 - 'sudo whoami' prints root, yet saves failed.)
+        try:
+            options.drop_privileges = False
+        except Exception:
+            pass
         self.matrix = RGBMatrix(options=options)
 
     def show(self, image, name=None):
