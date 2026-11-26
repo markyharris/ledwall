@@ -42,9 +42,10 @@ def _fit_font(path, text, start, max_w):
 
 def render_splash(base_img, ip, port=5000):
     img = base_img.point(lambda v: v // 6)  # dim the map to a backdrop
-    # Title: fitted to the full width, then stretched vertically -
-    # the word already spans the canvas edge to edge, so height is
-    # the only direction left to grow (Mark: still larger, Nov 2026).
+    # Title: fitted to the full width, then stretched slightly
+    # vertically - the word already spans the canvas edge to edge, so
+    # height is the only direction left to grow. 1.5x read as huge and
+    # out of proportion on the wall; 1.25x is the balance (Mark).
     font = _fit_font(FONT_BOLD, TITLE, 64, 248)
     layer = Image.new("RGBA", (CANVAS_W, 84), (0, 0, 0, 0))
     ld = ImageDraw.Draw(layer)
@@ -52,7 +53,7 @@ def render_splash(base_img, ip, port=5000):
     ld.text(((CANVAS_W - w) / 2, 0), TITLE, font=font,
             fill=(255, 176, 0, 255))
     layer = layer.crop(layer.getbbox())
-    layer = layer.resize((layer.width, int(layer.height * 1.5)),
+    layer = layer.resize((layer.width, int(layer.height * 1.25)),
                          Image.LANCZOS)
     img.paste(layer, ((CANVAS_W - layer.width) // 2, 10), layer)
     d = ImageDraw.Draw(img)
