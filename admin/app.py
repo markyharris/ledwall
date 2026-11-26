@@ -149,23 +149,16 @@ def create_app(state, regions):
 
     @app.route("/icon.png")
     def icon():
-        path = os.path.join(HERE, "icon.png")
-        if not os.path.exists(path):
-            # Generated (not kept in git): a thumbnail of the region map.
-            # Served from memory if the directory is not writable.
-            from ..core import render
-            from ..core.regions import get_region
-            cfg = config_mod.load()
-            base = render.build_base(get_region(cfg["region"]))
-            thumb = base.resize((64, 48))
-            try:
-                thumb.save(path)
-            except OSError:
-                buf = io.BytesIO()
-                thumb.save(buf, format="PNG")
-                buf.seek(0)
-                return send_file(buf, mimetype="image/png")
-        return send_file(path, mimetype="image/png")
+        # Generated fresh on each request (never kept in git or cached
+        # to disk): a light-background miniature of the region map.
+        from ..core import render
+        from ..core.regions import get_region
+        cfg = config_mod.load()
+        img = render.render_icon(get_region(cfg["region"]))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        return send_file(buf, mimetype="image/png")
 
     @app.route("/frame.png")
     def frame():

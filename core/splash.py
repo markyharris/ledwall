@@ -42,9 +42,20 @@ def _fit_font(path, text, start, max_w):
 
 def render_splash(base_img, ip, port=5000):
     img = base_img.point(lambda v: v // 6)  # dim the map to a backdrop
+    # Title: fitted to the full width, then stretched vertically -
+    # the word already spans the canvas edge to edge, so height is
+    # the only direction left to grow (Mark: still larger, Nov 2026).
+    font = _fit_font(FONT_BOLD, TITLE, 64, 248)
+    layer = Image.new("RGBA", (CANVAS_W, 84), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    w = ld.textlength(TITLE, font=font)
+    ld.text(((CANVAS_W - w) / 2, 0), TITLE, font=font,
+            fill=(255, 176, 0, 255))
+    layer = layer.crop(layer.getbbox())
+    layer = layer.resize((layer.width, int(layer.height * 1.5)),
+                         Image.LANCZOS)
+    img.paste(layer, ((CANVAS_W - layer.width) // 2, 10), layer)
     d = ImageDraw.Draw(img)
-    _centred(d, 22, TITLE, _fit_font(FONT_BOLD, TITLE, 64, 248),
-             (255, 176, 0))
     _centred(d, 98, SUBTITLE, _font(FONT, 15), (200, 210, 220))
     _centred(d, 132, "Admin page:", _font(FONT, 12), (140, 150, 160))
     _centred(d, 150, "http://%s:%d" % (ip, port), _font(FONT_BOLD, 16),

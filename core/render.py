@@ -18,6 +18,12 @@ LAND_FILL = (14, 18, 24)
 BORDER = (64, 78, 94)
 WATER = (0, 0, 0)
 
+# Admin icon palette: light background, so the browser tab shows a map
+# instead of a black box (the wall palette is near-black on black).
+ICON_BG = (233, 231, 224)
+ICON_LAND = (148, 168, 196)
+ICON_BORDER = (74, 92, 112)
+
 # Classic flight-category colours (unchanged from ledmap v1 / LiveSectional)
 CATEGORY_COLORS = {
     "VFR": (0, 255, 0),
@@ -65,6 +71,23 @@ def build_base(region):
         pass  # the cache is an optimisation; a read-only checkout must
         # never stop the map from drawing (bench find, Nov 2026: the Pi's
         # runtime user cannot write into the pi-owned clone)
+    return img
+
+
+def render_icon(region, width=96, height=72):
+    """A light-background miniature of the region map for the admin
+    page's favicon and header (Mark, Nov 2026: the dark thumbnail read
+    as a plain black box in the browser tab)."""
+    proj = Projection(region["bbox"], width=width, height=height)
+    img = Image.new("RGB", (width, height), ICON_BG)
+    d = ImageDraw.Draw(img)
+    with open(os.path.join(DATA_DIR, region["boundaries"])) as f:
+        geojson = json.load(f)
+    for feature in geojson["features"]:
+        for ring in _rings(feature["geometry"]):
+            pts = [proj.xy(lon, lat) for lon, lat in ring]
+            if len(pts) >= 3:
+                d.polygon(pts, fill=ICON_LAND, outline=ICON_BORDER)
     return img
 
 
