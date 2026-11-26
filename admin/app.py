@@ -147,11 +147,19 @@ def create_app(state, regions):
         path = os.path.join(HERE, "icon.png")
         if not os.path.exists(path):
             # Generated (not kept in git): a thumbnail of the region map.
+            # Served from memory if the directory is not writable.
             from ..core import render
             from ..core.regions import get_region
             cfg = config_mod.load()
             base = render.build_base(get_region(cfg["region"]))
-            base.resize((64, 48)).save(path)
+            thumb = base.resize((64, 48))
+            try:
+                thumb.save(path)
+            except OSError:
+                buf = io.BytesIO()
+                thumb.save(buf, format="PNG")
+                buf.seek(0)
+                return send_file(buf, mimetype="image/png")
         return send_file(path, mimetype="image/png")
 
     @app.route("/frame.png")
@@ -172,7 +180,10 @@ def create_app(state, regions):
         cfg["night_mode"] = "night_mode" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
         cfg["refresh_s"] = int(request.form.get("refresh_s", cfg["refresh_s"]))
-        config_mod.save(cfg)
+        try:
+            config_mod.save(cfg)
+        except OSError:
+            return redirect(url_for("index", msg="Could not write config.json (read-only location) - settings not saved."))
         return redirect(url_for("index", msg="Settings saved - restart the map to apply region/refresh changes."))
 
     @app.route("/update/check", methods=["POST"])

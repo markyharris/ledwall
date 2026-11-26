@@ -59,7 +59,12 @@ def build_base(region):
             pts = [proj.xy(lon, lat) for lon, lat in ring]
             if len(pts) >= 3:
                 d.polygon(pts, fill=LAND_FILL, outline=BORDER)
-    img.save(cache)
+    try:
+        img.save(cache)
+    except OSError:
+        pass  # the cache is an optimisation; a read-only checkout must
+        # never stop the map from drawing (bench find, Nov 2026: the Pi's
+        # runtime user cannot write into the pi-owned clone)
     return img
 
 
