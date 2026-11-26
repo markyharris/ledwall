@@ -38,7 +38,7 @@ class MatrixDisplay:
         options.cols = 64
         options.chain_length = 4
         options.parallel = 3
-        options.hardware_mapping = "adafruit-hat-pwm"
+        options.hardware_mapping = "regular"  # proven on Mark's HAT (v1 uses it)
         options.gpio_slowdown = gpio_slowdown
         options.brightness = brightness
         self.matrix = RGBMatrix(options=options)
