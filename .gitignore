@@ -1,0 +1,6 @@
+__pycache__/
+config.json
+data/cache_base_*.png
+previews/
+.venv/
+admin/icon.png
