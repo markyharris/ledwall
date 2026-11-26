@@ -47,6 +47,7 @@ PAGE = """<!DOCTYPE html>
 <header><img src="/icon.png" alt=""><h1>LEDWALL Admin</h1></header>
 
 <section class="a-status"><h2>Status</h2>
+ {% if msg %}<div class="ok" style="margin-bottom:8px">{{ msg }}</div>{% endif %}
  <div>Module: <b>{{ state.module_name }}</b> &middot; Region: <b>{{ state.region }}</b></div>
  <div>Stations reporting: <b>{{ state.stations }}</b> &middot; Dots shown: <b>{{ state.dots }}</b></div>
  <div>Last data refresh: <b>{{ last_fetch }}</b></div>
@@ -93,7 +94,6 @@ PAGE = """<!DOCTYPE html>
    <button type="submit">Update now</button></form>
  <form method="post" action="/reboot" style="display:inline">
    <button type="submit">Reboot</button></form>
- {% if msg %}<div class="ok">{{ msg }}</div>{% endif %}
  <div class="dim">Admin address: http://{{ ip }}:{{ port }} &middot; Project Finder: /api/status</div>
 </section>
 </body></html>"""

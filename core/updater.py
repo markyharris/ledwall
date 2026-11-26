@@ -5,14 +5,35 @@ The hourly check only FLAGS; updating happens when the owner presses
 origin/main. Apply = git pull --ff-only; the caller restarts the
 service. Outside a git checkout every call degrades gracefully.
 """
+import os
 import subprocess
 
 from .config import ROOT
 
 
+def _git_env():
+    """The app runs as root (rc.local), but the GitHub key belongs to
+    the user who owns the checkout - the folder above the repo. Borrow
+    that identity for git's SSH transport; without it, fetch/pull die
+    with 'Permission denied (publickey)' even though the same commands
+    work from the owner's own shell. (Bench find, Nov 2026.)"""
+    env = dict(os.environ)
+    ssh_dir = os.path.join(os.path.dirname(ROOT), ".ssh")
+    for name in ("id_ed25519", "id_rsa"):
+        key = os.path.join(ssh_dir, name)
+        if os.path.exists(key):
+            env["GIT_SSH_COMMAND"] = (
+                "ssh -i %s -o IdentitiesOnly=yes "
+                "-o UserKnownHostsFile=%s"
+                % (key, os.path.join(ssh_dir, "known_hosts")))
+            break
+    return env
+
+
 def _git(*args):
     return subprocess.run(["git", "-C", ROOT] + list(args),
-                          capture_output=True, text=True, timeout=60)
+                          capture_output=True, text=True, timeout=60,
+                          env=_git_env())
 
 
 def is_checkout():
