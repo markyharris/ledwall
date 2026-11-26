@@ -77,6 +77,8 @@ def plot_weather(base, metars, region):
     img = base.copy()
     d = ImageDraw.Draw(img)
     min_sep = region.get("min_sep", 3)
+    dot = region.get("dot", 2)  # station dot size in LEDs (2 = a 2x2 block)
+    half = dot // 2
     reports = list(metars.values())
     # Reports with no flight category from the API plot as NONE (grey).
     reports.sort(key=lambda r: PRIORITY[r.get("fltCat") or "NONE"])
@@ -91,5 +93,6 @@ def plot_weather(base, metars, region):
             continue
         placed.append((xi, yi))
         cat = rep.get("fltCat") or "NONE"
-        d.rectangle([xi - 1, yi - 1, xi, yi], fill=CATEGORY_COLORS[cat])
+        d.rectangle([xi - half, yi - half, xi - half + dot - 1,
+                     yi - half + dot - 1], fill=CATEGORY_COLORS[cat])
     return img, len(placed)

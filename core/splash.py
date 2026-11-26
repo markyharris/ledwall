@@ -28,13 +28,26 @@ def _centred(d, y, text, font, fill):
     d.text(((CANVAS_W - w) / 2, y), text, font=font, fill=fill)
 
 
+def _fit_font(path, text, start, max_w):
+    """Largest size <= start at which the text fits max_w pixels wide."""
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    size = start
+    while size > 10:
+        f = _font(path, size)
+        if probe.textlength(text, font=f) <= max_w:
+            return f
+        size -= 2
+    return _font(path, size)
+
+
 def render_splash(base_img, ip, port=5000):
     img = base_img.point(lambda v: v // 6)  # dim the map to a backdrop
     d = ImageDraw.Draw(img)
-    _centred(d, 34, TITLE, _font(FONT_BOLD, 40), (255, 176, 0))
-    _centred(d, 84, SUBTITLE, _font(FONT, 14), (200, 210, 220))
-    _centred(d, 128, "Admin page:", _font(FONT, 12), (140, 150, 160))
-    _centred(d, 146, "http://%s:%d" % (ip, port), _font(FONT_BOLD, 15),
+    _centred(d, 22, TITLE, _fit_font(FONT_BOLD, TITLE, 64, 248),
+             (255, 176, 0))
+    _centred(d, 98, SUBTITLE, _font(FONT, 15), (200, 210, 220))
+    _centred(d, 132, "Admin page:", _font(FONT, 12), (140, 150, 160))
+    _centred(d, 150, "http://%s:%d" % (ip, port), _font(FONT_BOLD, 16),
              (0, 255, 128))
-    _centred(d, 172, VERSION, _font(FONT, 10), (110, 120, 130))
+    _centred(d, 176, VERSION, _font(FONT, 10), (110, 120, 130))
     return img
