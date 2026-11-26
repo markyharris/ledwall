@@ -33,12 +33,18 @@ class MetarMapModule(Module):
         self.metars = metar.fetch_metars(self.station_ids)
 
     def draw(self, ctx):
+        region = dict(self.region)
+        dot = int(self.config.get("dot_size", 2))
+        region["dot"] = dot
+        region["min_sep"] = 3 if dot >= 2 else 2
         frame, self.dot_count = render.plot_weather(
-            self.base, self.metars, self.region)
+            self.base, self.metars, region)
         return frame
 
     def admin_fields(self):
         return [
             {"key": "region", "label": "Region", "type": "select",
              "options": ["CONUS"]},
+            {"key": "dot_size", "label": "Station dot size",
+             "type": "select", "options": ["1", "2"]},
         ]

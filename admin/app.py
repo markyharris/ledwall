@@ -74,6 +74,11 @@ PAGE = """<!DOCTYPE html>
   <select name="region">{% for r in regions %}
    <option value="{{ r }}" {% if cfg.region == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
+ <label>Station dot size
+  <select name="dot_size">
+   <option value="1" {% if cfg.dot_size == 1 %}selected{% endif %}>1 LED</option>
+   <option value="2" {% if cfg.dot_size != 1 %}selected{% endif %}>2x2 block</option>
+  </select></label>
  <label>Data refresh (seconds) <span class="val" id="rv">{{ cfg.refresh_s }}</span></label>
  <input type="range" name="refresh_s" min="60" max="1800" step="60" value="{{ cfg.refresh_s }}"
         oninput="document.getElementById('rv').textContent=this.value">
@@ -179,12 +184,16 @@ def create_app(state, regions):
             "night_brightness", cfg["night_brightness"]))
         cfg["night_mode"] = "night_mode" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
+        cfg["dot_size"] = int(request.form.get("dot_size",
+                                               cfg.get("dot_size", 2)))
+        if cfg["dot_size"] not in (1, 2):
+            cfg["dot_size"] = 2
         cfg["refresh_s"] = int(request.form.get("refresh_s", cfg["refresh_s"]))
         try:
             config_mod.save(cfg)
         except OSError:
             return redirect(url_for("index", msg="Could not write config.json (read-only location) - settings not saved."))
-        return redirect(url_for("index", msg="Settings saved - restart the map to apply region/refresh changes."))
+        return redirect(url_for("index", msg="Settings saved - restart the map to apply changes."))
 
     @app.route("/update/check", methods=["POST"])
     def update_check():

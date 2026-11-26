@@ -13,6 +13,7 @@ CONFIG_PATH = os.path.join(ROOT, "config.json")
 DEFAULTS = {
     "module": "metar_map",
     "region": "CONUS",
+    "dot_size": 2,
     "brightness": 60,
     "refresh_s": 300,
     "night_mode": False,
