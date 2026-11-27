@@ -81,10 +81,11 @@ reference and the rollback.
   between polls, so the dots glide. Each dot trails a Garmin-style
   trend vector: its tip is where the aircraft will be in one
   minute at its current groundspeed.
-- **Module rotation**: the admin's Module Rotation section cycles
-  the wall through the picked modules, each for a chosen dwell,
-  leading with the "Show on the wall" module and crossfading
-  between them; the weather map's region rotation keeps working
+- **Module rotation**: the admin's Module Rotation section has a
+  master "Rotate modules" checkbox plus one checkbox per module
+  (the LED ticker's pattern); with rotation on, the wall cycles
+  the checked modules, each for a chosen dwell, crossfading
+  between them. The weather map's region rotation keeps working
   while the map is up.
 - **Fifth module — Tonight's Sky**: a planisphere of the sky over
   the house. Bright stars sized by magnitude (the brightest

@@ -208,6 +208,19 @@ git run as root has no key and GitHub answers "Permission denied
     location from the Skywatch center settings (sw_lat/sw_lon),
     so there is one place to correct the site's coordinates.
 
+17. **Rotation controls are checkboxes, like the ticker's
+    (Nov 27).** The first module-rotation admin used a
+    multi-select list, with the "Show on the wall" module implied
+    as the cycle's lead — Mark sent it back the same day: the LED
+    ticker's pattern is one checkbox per rotating item, and he
+    wanted a master checkbox deciding whether rotation happens
+    at all. The model is now exactly that: `module_rotate_on`
+    plus `rotate_modules` holding the checked keys, and the
+    cycle is the checked set in admin list order. Switch off (or
+    fewer than two checked) and the single module setting rules.
+    When a control already exists on another of his projects,
+    match its pattern instead of inventing a new one.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

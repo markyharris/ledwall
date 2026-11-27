@@ -87,13 +87,14 @@ PAGE = """<!DOCTYPE html>
 </section>
 
 <section class="a-rotate"><h2>Module Rotation</h2>
- <label>Rotate through these modules
-  <select name="rotate_modules" multiple size="5">{% for key, title in modules %}
-   <option value="{{ key }}" {% if key in cfg.rotate_modules %}selected{% endif %}>{{ title }}</option>{% endfor %}
-  </select></label>
+ <label class="chk"><input type="checkbox" name="module_rotate_on" {% if cfg.module_rotate_on %}checked{% endif %}> Rotate modules</label>
+ <div style="margin:6px 0 6px 18px">
+  {% for key, title in modules %}
+  <label style="display:block;margin:4px 0"><input type="checkbox" name="rotmod_{{ key }}" {% if key in cfg.rotate_modules %}checked{% endif %}> {{ title }}</label>{% endfor %}
+ </div>
  <label>Show each module for
   <input type="number" name="module_rotate_s" min="10" max="3600" step="10" value="{{ cfg.module_rotate_s }}"> seconds</label>
- <div class="dim">The wall shows the "Show on the wall" module first, then cycles through the picked modules, each for the interval above, and back to the start. Pick none (or only that same module) and the wall stays put. The weather map's own region rotation keeps working while the map is up.</div>
+ <div class="dim">With Rotate modules on, the wall cycles through the checked modules, each for the interval above. With it off (or fewer than two checked), the wall stays on the "Show on the wall" module. The weather map's own region rotation keeps working while the map is up.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 
@@ -313,9 +314,10 @@ def create_app(state, regions, modules=None):
         mod = request.form.get("module", cfg.get("module", "metar_map"))
         if mod in dict(modules):
             cfg["module"] = mod  # an unknown module name is ignored
+        cfg["module_rotate_on"] = "module_rotate_on" in request.form
         cfg["rotate_modules"] = [
-            m for m in request.form.getlist("rotate_modules")
-            if m in dict(modules)]
+            key for key, _title in modules
+            if "rotmod_" + key in request.form]
         try:
             module_rotate_s = int(request.form.get(
                 "module_rotate_s", cfg.get("module_rotate_s", 120)))

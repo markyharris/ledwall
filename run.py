@@ -115,37 +115,38 @@ def desired_region(state, live, view, now):
 
 
 def desired_module(state, live, view, now):
-    """Which module belongs on the wall right now. With modules
-    picked for rotation, the cycle always leads with the "Show on
-    the wall" module - the owner's home view - then the picked
-    modules, each shown for module_rotate_s seconds (Mark's ask:
-    a rotator like his other projects). With nothing picked, the
-    single module setting rules. `view` carries the rotation
-    position between ticks, under its own keys so the region
-    rotation's state is never disturbed."""
-    picks = [m for m in live.get("rotate_modules") or []
-             if m in MODULES]
+    """Which module belongs on the wall right now. Module rotation
+    is a plain checkbox affair, like the LED ticker's subjects
+    (Mark's call): a master "Rotate modules" switch plus one
+    checkbox per module, and the cycle is exactly the checked
+    set, in admin list order, each module shown for
+    module_rotate_s seconds. With the switch off - or fewer than
+    two modules checked - the "Show on the wall" module rules.
+    `view` carries the rotation position between ticks, under
+    its own keys so the region rotation's state is never
+    disturbed."""
     base = live.get("module", "metar_map")
     if base not in MODULES:
         base = "metar_map"
-    sequence = [base] + [m for m in picks if m != base]
-    if len(sequence) < 2:
+    picks = [m for m in MODULES
+             if m in (live.get("rotate_modules") or [])]
+    if not live.get("module_rotate_on") or len(picks) < 2:
         view["mod_rotation"] = None
         return base
+    sequence = picks
+    dwell = max(10, int(live.get("module_rotate_s", 120)))
     if view.get("mod_rotation") != tuple(sequence):
         view["mod_rotation"] = tuple(sequence)
         # A new cycle takes over from the current view when it can:
         # if this module is in the cycle it keeps its full interval;
-        # otherwise the cycle starts at the home module right away.
-        view["mod_deadline"] = now + max(
-            10, int(live.get("module_rotate_s", 120))) \
+        # otherwise the cycle starts at the first checked module.
+        view["mod_deadline"] = now + dwell \
             if state.module_name in sequence else 0.0
     if state.module_name in sequence and now < view["mod_deadline"]:
         return state.module_name
     idx = (sequence.index(state.module_name) + 1) % len(sequence) \
         if state.module_name in sequence else 0
-    view["mod_deadline"] = now + max(
-        10, int(live.get("module_rotate_s", 120)))
+    view["mod_deadline"] = now + dwell
     return sequence[idx]
 
 
