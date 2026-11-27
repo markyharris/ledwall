@@ -12,7 +12,7 @@ FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 TITLE = "LEDWALL"
-SUBTITLE = "Live METAR Weather"
+SUBTITLE = "Useful Information"
 VERSION = "v2.0-dev"
 
 
@@ -51,7 +51,7 @@ def render_splash(base_img, ip, port=5000):
     ld = ImageDraw.Draw(layer)
     w = ld.textlength(TITLE, font=font)
     ld.text(((CANVAS_W - w) / 2, 0), TITLE, font=font,
-            fill=(255, 176, 0, 255))
+            fill=(30, 144, 255, 255))
     layer = layer.crop(layer.getbbox())
     layer = layer.resize((layer.width, int(layer.height * 1.1)),
                          Image.LANCZOS)
