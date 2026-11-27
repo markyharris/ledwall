@@ -45,6 +45,7 @@ class MetarWorldModule(Module):
     name = "metar_world"
     title = "World Weather"
     tick_s = 5
+    PERSIST = ("metars",)
 
     @property
     def fetch_s(self):

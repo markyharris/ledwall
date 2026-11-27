@@ -42,6 +42,7 @@ class IssModule(Module):
     name = "iss"
     title = "ISS Tracker"
     tick_s = 5
+    PERSIST = ("tle", "_pass", "_pass_at", "_night", "_night_at")
 
     @property
     def fetch_s(self):

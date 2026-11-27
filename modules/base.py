@@ -23,6 +23,12 @@ class Module:
     # main loop reads it after every draw, so it must exist on
     # every module (the Launch Board shipped without it and
     # wedged the wall on its splash - Nov 27)
+    PERSIST = ()  # attribute names holding fetched data. The
+    # loop snapshots them when rotation switches away and
+    # restores them when the module comes back around, so a
+    # revisit shows the last data at once and fetches on the
+    # module's own cadence - not from scratch every visit
+    # (the long empty delay on every rotation lap, Nov 27)
 
     def setup(self, config):
         self.config = config

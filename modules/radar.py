@@ -66,6 +66,7 @@ class RadarModule(Module):
     name = "radar"
     title = "Live Radar"
     tick_s = 1
+    PERSIST = ("frames",)
 
     @property
     def fetch_s(self):

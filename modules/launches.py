@@ -137,6 +137,7 @@ class LaunchesModule(Module):
     name = "launches"
     title = "Rocket Launch Board"
     tick_s = 1  # the countdown ticks every second
+    PERSIST = ("launches", "fetched")
 
     @property
     def fetch_s(self):

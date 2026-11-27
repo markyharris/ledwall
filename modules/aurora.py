@@ -72,6 +72,7 @@ class AuroraModule(Module):
     name = "aurora"
     title = "Aurora & Space Weather"
     tick_s = 10
+    PERSIST = ("kp", "oval", "wind", "bz", "_night", "_night_at")
 
     @property
     def fetch_s(self):

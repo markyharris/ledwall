@@ -371,6 +371,22 @@ git run as root has no key and GitHub answers "Permission denied
     itself remains in git history, one checkout away if it is
     ever wanted back.
 
+28. **Rotation must not amnesia the modules (Nov 27).** The
+    loop kept one module instance and built a fresh one at
+    every switch, carrying over only the weather map's
+    METARs - so the ISS's elements, the quake feed, the
+    launch list, the radar frames and the rest were thrown
+    away on every lap, and each module's turn began with an
+    empty screen and a full fetch (radar's is ~54 tile
+    requests). Now each module declares its fetched data in
+    a PERSIST tuple; the loop snapshots it on switch-away
+    and restores it on return, and the fetch clock is kept
+    per module: a revisit shows the last data at once and
+    refetches only when it is older than the module's own
+    cadence. The general rule: a switch of view is not a
+    change of data - anything the owner can rotate back to
+    within the hour should still be holding what it fetched.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

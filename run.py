@@ -195,6 +195,17 @@ def apply_live_config(module, state, live, view, now):
     if want_module == "metar_map":
         want = desired_region(state, live, view, now)
     if want_module != state.module_name or want != state.region:
+        # A rotating wall revisits every module all day, so a
+        # module's fetched data survives the switch: snapshot
+        # the outgoing module's PERSIST attributes, and restore
+        # the incoming one's from its last visit. Without this,
+        # every visit started from an empty module and a fresh
+        # fetch - the long blank delay on every rotation lap.
+        saved = view.setdefault("saved", {})
+        if getattr(module, "PERSIST", None):
+            saved[state.module_name] = {
+                a: getattr(module, a) for a in module.PERSIST
+                if hasattr(module, a)}
         new_module = MODULES.get(want_module, MetarMapModule)()
         setup_cfg = dict(live)
         setup_cfg["region"] = want
@@ -210,11 +221,29 @@ def apply_live_config(module, state, live, view, now):
         if carried:
             new_module.metars = carried
             new_module._dirty = True
+        if new_module.name in saved:
+            for attr, value in saved[new_module.name].items():
+                setattr(new_module, attr, value)
         state.module_name = new_module.name
         state.region = want
         return new_module, True
     module.config = live
     return module, False
+
+
+def _next_fetch_after_switch(view, module, cfg, now):
+    """When the module that just came up should next fetch. Its
+    restored data is already on screen, so the fetch falls due
+    one cadence after its last one; a module with nothing
+    restored (first visit since boot) - or data older than its
+    cadence - fetches at once, as switches always did."""
+    last = view.get("fetch_at", {}).get(module.name, 0.0)
+    cadence = getattr(module, "fetch_s", None) or cfg["refresh_s"]
+    restored = bool(view.get("saved", {}).get(module.name)) \
+        or getattr(module, "metars", None)
+    if restored and last and now - last < cadence:
+        return last + cadence
+    return 0.0
 
 
 def main():
@@ -279,10 +308,13 @@ def main():
                 module, state, cfg, view, time.time())
             if switched and last_frame is not None:
                 fade_pending = last_frame
-            if switched and not getattr(module, "metars", None):
-                next_fetch = 0.0  # nothing carried over: fetch at once
+            if switched:
+                next_fetch = _next_fetch_after_switch(
+                    view, module, cfg, time.time())
             if time.time() >= next_fetch and not fetching["busy"]:
                 fetching["busy"] = True
+                view.setdefault("fetch_at", {})[module.name] = \
+                    time.time()
                 threading.Thread(target=_run_fetch,
                                  args=(module, state, fetching),
                                  daemon=True).start()

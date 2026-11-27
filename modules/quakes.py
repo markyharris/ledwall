@@ -57,6 +57,7 @@ class QuakesModule(Module):
     name = "quakes"
     title = "Earthquake Map"
     tick_s = 10
+    PERSIST = ("events",)
 
     @property
     def fetch_s(self):

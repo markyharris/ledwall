@@ -184,6 +184,8 @@ class SkywatchModule(Module):
     name = "skywatch"
     title = "Overhead aircraft"
     tick_s = 0.5
+    PERSIST = ("aircraft", "_fetched_at", "_routes", "_acinfo",
+               "_tally", "_tally_date")
     fetch_s = 30
 
     def setup(self, config):
