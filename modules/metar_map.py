@@ -9,6 +9,7 @@ import json
 import os
 
 from ..core import metar, render
+from ..core.geo import Projection
 from ..core.regions import get_region
 from .base import Module
 
@@ -42,6 +43,10 @@ class MetarMapModule(Module):
         self._dirty = True
         self._ts_seen = set()  # bolt positions at the previous refresh
         self._flash = {}       # (x, y) -> tick a new bolt first painted
+        self._proj = Projection(self.region["bbox"],
+                                width=self.base.width,
+                                height=self.base.height)
+        self._home_cache = {}  # home airport id -> last-known (lon, lat)
 
     def refresh_data(self):
         self.metars = metar.fetch_metars(self.station_ids)
@@ -101,6 +106,23 @@ class MetarMapModule(Module):
                     del self._flash[pos]
             render.draw_icons(frame, stations, level=level,
                               bolt_on=bolt_on, flash=flash)
+        home = (self.config.get("home_airport") or "").strip().upper()
+        if home:
+            rep = self.metars.get(home)
+            if rep:
+                self._home_cache[home] = (rep["lon"], rep["lat"])
+            if home in self._home_cache:
+                lon, lat = self._home_cache[home]
+                polys = render._feature_polys(self.region)
+                if not polys or render._inside_polys(lon, lat, polys):
+                    fx, fy = self._proj.xy(lon, lat)
+                    fx, fy = int(fx), int(fy)
+                    if 0 <= fx < frame.width - 6 and \
+                            9 <= fy < frame.height:
+                        pulse = 0.55 + 0.45 * (
+                            (FADE_LEVELS[tick % len(FADE_LEVELS)] - 0.30)
+                            / 0.95)
+                        render.draw_home_flag(frame, fx, fy, level=pulse)
         if self.config.get("show_clock", True):
             render.draw_zulu_clock(frame)
         return frame

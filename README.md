@@ -24,6 +24,11 @@ reference and the rollback.
 - **Lightning entrance flash**: a thunderstorm station that newly
   appears paints its bolt double-size in pure white for half a second,
   then settles into the normal yellow fade.
+- **Home airport flag**: a gently pulsing amber pennant planted on
+  the owner's home field (a station ID in the admin; KFLG ships as
+  the default), drawn over its dot in any view that contains it.
+- **Region switches melt**: a ~1-second crossfade replaces the jump
+  cut, for manual changes and rotation steps alike.
 - **Region label** (CONUS, ARIZONA, …) auto-placed into the emptiest
   space on the map at every refresh; it moves if weather fills its
   spot, and it never slides under the clock.

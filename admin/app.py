@@ -84,6 +84,8 @@ PAGE = """<!DOCTYPE html>
   <select name="region">{% for r in regions %}
    <option value="{{ r }}" {% if cfg.region == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
+ <label>Home airport (flag)
+  <input type="text" name="home_airport" value="{{ cfg.home_airport }}" size="6" maxlength="6"></label>
  <label>Rotate through regions (pick 2 or more)
   <select name="rotate_regions" multiple size="6">{% for r in regions %}
    <option value="{{ r }}" {% if r in cfg.rotate_regions %}selected{% endif %}>{{ r }}</option>{% endfor %}
@@ -224,6 +226,10 @@ def create_app(state, regions):
             # an unreadable time keeps the previous value, never junk
         cfg["show_clock"] = "show_clock" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
+        home = request.form.get("home_airport",
+                                cfg.get("home_airport", ""))
+        cfg["home_airport"] = "".join(
+            ch for ch in home.upper() if ch.isalnum())[:6]
         cfg["rotate_regions"] = [
             r for r in request.form.getlist("rotate_regions")
             if r in regions]

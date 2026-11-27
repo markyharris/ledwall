@@ -323,6 +323,21 @@ def zulu_clock_box(width):
     return (width - w - 5, 5, width - 5, 22)
 
 
+def draw_home_flag(img, x, y, level=1.0):
+    """Plant the home-airport flag at the station dot (x, y): a white
+    pole rising from the dot and an amber pennant flying right, its
+    colour scaled by level (the module pulses it gently). The dot
+    itself stays visible - its colour is the weather at home."""
+    d = ImageDraw.Draw(img)
+    amber = tuple(int(c * level) for c in (255, 176, 0))
+    for dy in range(1, 9):
+        d.point((x, y - dy), fill=(240, 240, 240))
+    for i, ln in enumerate((5, 4, 2)):
+        for dx in range(1, 1 + ln):
+            d.point((x + dx, y - 8 + i), fill=amber)
+    return img
+
+
 def draw_zulu_clock(img, now=None):
     """HH:MMZ in the top-right corner, redrawn every tick. `now` is a
     Unix timestamp (defaults to the current time) so tests can pin it."""

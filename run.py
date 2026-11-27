@@ -12,6 +12,8 @@ import threading
 import time
 import traceback
 
+from PIL import Image
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ledwall.admin.app import local_ip, serve
@@ -82,6 +84,16 @@ def desired_region(state, live, view, now):
     return rotation[idx]
 
 
+FADE_S = 0.9  # seconds for a region-switch crossfade
+
+
+def fade_frame(old, new, t):
+    """Crossfade between two frames, t in [0, 1], smoothstep-eased so
+    a region switch melts instead of jumping (Mark's ask)."""
+    t = min(1.0, max(0.0, t))
+    return Image.blend(old, new, t * t * (3 - 2 * t))
+
+
 def apply_live_config(module, state, live, view, now):
     """Adopt a freshly loaded config in the running loop. Settings go
     straight to the module; a region change - the owner's edit, or the
@@ -127,11 +139,16 @@ def main():
     next_fetch = 0.0
     tick = 0
     view = {}
+    last_frame = None
+    fade_from = None
+    fade_start = 0.0
     while True:
         try:
             cfg = config_mod.load()
             module, switched = apply_live_config(
                 module, state, cfg, view, time.time())
+            if switched and last_frame is not None:
+                fade_from, fade_start = last_frame, time.time()
             if switched and not getattr(module, "metars", None):
                 next_fetch = 0.0  # nothing carried over: fetch at once
             if time.time() >= next_fetch:
@@ -141,10 +158,18 @@ def main():
                 next_fetch = time.time() + cfg["refresh_s"]
             display.set_brightness(effective_brightness(cfg))
             frame = module.draw(tick)
+            if fade_from is not None:
+                t = (time.time() - fade_start) / FADE_S
+                if t >= 1.0:
+                    fade_from = None
+                else:
+                    frame = fade_frame(fade_from, frame, t)
             state.frame = frame
             state.dots = module.dot_count
             display.show(frame, "weather")
-            delay = getattr(module, "tick_s", 0) or cfg["refresh_s"]
+            last_frame = frame
+            delay = 0.1 if fade_from is not None else \
+                (getattr(module, "tick_s", 0) or cfg["refresh_s"])
         except Exception:
             # A bad cycle must never wedge or kill the wall (the v1
             # failure Mark worked around with a nightly reboot): keep
