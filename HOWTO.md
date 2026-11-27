@@ -300,6 +300,20 @@ git run as root has no key and GitHub answers "Permission denied
     choices shrink. If counting ever fails, every region
     reports occupied - an error must hide nothing.
 
+23. **One data set can wear two outfits (Nov 27).** Mark liked
+    the info modules' whole-earth look (darkened world base,
+    plain title, dots, facts strip) and asked for the METAR
+    data in the same theme. World Weather is a separate module
+    sharing the weather map's feed, age cutoff and category
+    colors - not a restyle of the map, which keeps its own
+    regional detail, icons and clock. At world scale the plot
+    declutters onto the map's own 2 px separation with the
+    worse category winning each cell. Strip text follows the
+    all-or-nothing rule: a suffix that cannot fit whole
+    ("16 WITH THUNDERSTORMS") is shortened by design ("16 TS")
+    or dropped - never truncated into a stub that reads as a
+    typo.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

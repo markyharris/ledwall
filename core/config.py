@@ -62,6 +62,8 @@ DEFAULTS = {
     "aurora_wind": True,
     "launch_sites": True,
     "launch_provider": True,
+    "mw_home": True,
+    "mw_legend": True,
 }
 
 
