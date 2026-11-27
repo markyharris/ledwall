@@ -167,18 +167,37 @@ def wx_kind(wx):
     return None
 
 
-def draw_icons(img, stations, level=1.0, bolt_on=True):
+def draw_icons(img, stations, level=1.0, bolt_on=True, flash=None):
     """Draw icon glyphs centred on each (x, y, kind), with colours
-    scaled by level (0..1) for the fade animation. Bolts are drawn
+    scaled by level for the fade animation (level may exceed 1: the
+    peak of the fade runs hot, channels clamp at 255). Bolts are drawn
     last so they sit on top of any neighbouring icon, and are skipped
-    entirely when bolt_on is False (blink mode's off phase)."""
+    entirely when bolt_on is False (blink mode's off phase).
+
+    flash maps (x, y) -> stage for thunderstorm stations that have
+    just appeared: stage 0 draws the bolt double-size in pure white,
+    stage 1 single-size white - the entrance flash, before the bolt
+    settles into its normal yellow fade."""
     d = ImageDraw.Draw(img)
-    scaled = {k: tuple(int(c * level) for c in rgb)
+    flash = flash or {}
+    scaled = {k: tuple(min(255, int(c * level)) for c in rgb)
               for k, rgb in ICON_COLORS.items()}
     for x, y, kind in sorted(stations, key=lambda s: s[2] == "TS"):
+        glyph = GLYPHS[kind]
+        if kind == "TS" and (x, y) in flash:
+            scale = 2 if flash[(x, y)] == 0 else 1
+            ox = x - len(glyph[0]) * scale // 2
+            oy = y - len(glyph) * scale // 2
+            for r, row in enumerate(glyph):
+                for c, ch in enumerate(row):
+                    if ch == "#":
+                        d.rectangle([ox + c * scale, oy + r * scale,
+                                     ox + c * scale + scale - 1,
+                                     oy + r * scale + scale - 1],
+                                    fill=(255, 255, 255))
+            continue
         if kind == "TS" and not bolt_on:
             continue
-        glyph = GLYPHS[kind]
         color = scaled[kind]
         ox, oy = x - len(glyph[0]) // 2, y - len(glyph) // 2
         for r, row in enumerate(glyph):
