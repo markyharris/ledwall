@@ -42,6 +42,22 @@ def effective_brightness(cfg):
     return cfg.get("brightness", 60)
 
 
+def apply_live_config(module, state, live):
+    """Adopt a freshly loaded config in the running loop. Settings go
+    straight to the module; a region (or module) change rebuilds the
+    module for the new view on the spot - no restart, the wall just
+    switches (Mark's ask). Returns (module, switched)."""
+    if live.get("region") != state.region or \
+            live.get("module") != state.module_name:
+        new_module = MODULES[live["module"]]()
+        new_module.setup(live)
+        state.module_name = new_module.name
+        state.region = live["region"]
+        return new_module, True
+    module.config = live
+    return module, False
+
+
 def main():
     cfg = config_mod.load()
     state = AppState()
@@ -63,13 +79,16 @@ def main():
     tick = 0
     while True:
         try:
+            cfg = config_mod.load()
+            module, switched = apply_live_config(module, state, cfg)
+            if switched:
+                next_fetch = 0.0  # fetch for the new view right away
             if time.time() >= next_fetch:
                 module.refresh_data()
                 state.stations = len(module.metars)
                 state.last_fetch = time.time()
                 next_fetch = time.time() + cfg["refresh_s"]
-            display.set_brightness(
-                effective_brightness(config_mod.load()))
+            display.set_brightness(effective_brightness(cfg))
             frame = module.draw(tick)
             state.frame = frame
             state.dots = module.dot_count
