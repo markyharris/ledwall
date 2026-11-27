@@ -71,7 +71,11 @@ reference and the rollback.
   owner), the full aircraft type, the tail number, altitude,
   speed, heading, vertical speed and distance — and, for scheduled
   flights, the departure and destination airports from the free
-  adsbdb.com callsign lookup. The feed polls every 15–60 s (its
+  adsbdb.com callsign lookup. An aircraft that slows to taxi
+  speed over the field is treated as landed and the box hands off
+  to the next nearest; a "seen today" tally of unique aircraft
+  sits at the bottom of the box whenever there is room for it.
+  The feed polls every 15–60 s (its
   own cadence, independent of the weather refresh) and each
   aircraft is dead-reckoned along its reported track and speed
   between polls, so the dots glide. Each dot trails a Garmin-style

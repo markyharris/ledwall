@@ -1,5 +1,6 @@
 __pycache__/
 config.json
+skywatch_tally.json
 data/cache_base_*.png
 previews/
 .venv/

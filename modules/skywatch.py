@@ -20,6 +20,7 @@ altitude band, six steps from warm (low) to violet (high).
 """
 import json
 import math
+import os
 import time
 import urllib.request
 
@@ -33,6 +34,8 @@ BOX_X = 162
 FEED = "https://api.adsb.lol/v2/point/{lat}/{lon}/{nm}"
 ROUTE = "https://api.adsbdb.com/v0/callsign/{call}"
 ACINFO = "https://api.adsbdb.com/v0/aircraft/{hex}"
+TALLY_PATH = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "..", "skywatch_tally.json")
 
 # altitude bands (ft MSL), warm low -> violet high
 BANDS = [(8000, (255, 110, 40)), (14000, (255, 190, 0)),
@@ -155,6 +158,14 @@ def _wrap(d, text, font, max_w):
     return lines
 
 
+def _is_landed(a):
+    """On the ground at the centre airfield: within 2 nm of the
+    centre point and down to taxi speed. A slow, close aircraft
+    that has landed should hand the info box to the next one."""
+    gs = a["gs"] if a["gs"] is not None else 0
+    return a["dist"] <= 2.0 and gs < 40
+
+
 def _vector_px(gs, nm):
     """Trend-vector length in pixels: where the aircraft will be
     in one minute at its groundspeed, at the scope's scale - the
@@ -182,7 +193,41 @@ class SkywatchModule(Module):
         self.dot_count = 0
         self._routes = {}   # callsign -> route dict or None
         self._acinfo = {}   # hex -> adsbdb aircraft dict or None
+        self._tally_date = ""
+        self._tally = set()  # hex codes seen overhead today
+        self._load_tally()
         self._sync_fetch_s()
+
+    # -- the day's tally -------------------------------------------
+    def _load_tally(self):
+        try:
+            with open(TALLY_PATH) as fh:
+                data = json.load(fh)
+            if data.get("date") == time.strftime("%Y-%m-%d"):
+                self._tally_date = data["date"]
+                self._tally = set(data.get("hexes", []))
+        except Exception:
+            pass  # a missing/corrupt tally just starts fresh
+
+    def _update_tally(self, aircraft):
+        today = time.strftime("%Y-%m-%d")
+        changed = False
+        if self._tally_date != today:
+            self._tally_date = today
+            self._tally = set()
+            changed = True
+        for a in aircraft:
+            hx = a["hex"].lower()
+            if hx and hx not in self._tally:
+                self._tally.add(hx)
+                changed = True
+        if changed:
+            try:
+                with open(TALLY_PATH, "w") as fh:
+                    json.dump({"date": self._tally_date,
+                               "hexes": sorted(self._tally)}, fh)
+            except OSError:
+                pass  # best effort, like every Pi-side write
 
     def _sync_fetch_s(self):
         try:
@@ -234,6 +279,7 @@ class SkywatchModule(Module):
         self.aircraft = out
         self._fetched_at = time.time()
         self.dot_count = len(out)
+        self._update_tally(out)
         self._enrich(out)
 
     def _enrich(self, aircraft):
@@ -263,6 +309,19 @@ class SkywatchModule(Module):
                     self._acinfo[hx] = None
 
     # -- drawing ---------------------------------------------------
+    def _tally_footer(self, d, x0, x1, y1, y_end):
+        """The day's overhead tally, pinned to the box bottom -
+        only when the content above leaves room for it."""
+        if not self._tally or y_end > y1 - 16:
+            return
+        d.line([(x0 + 3, y1 - 15), (x1 - 3, y1 - 15)],
+               fill=(34, 54, 72))
+        d.text((x0 + 4, y1 - 12), "SEEN TODAY", font=FONT_S,
+               fill=LABEL)
+        count = str(len(self._tally))
+        d.text((x1 - 4 - d.textlength(count, font=FONT_S), y1 - 12),
+               count, font=FONT_S, fill=VALUE)
+
     def _box(self, d, a):
         """The info box for the nearest aircraft (or its absence)."""
         x0, y0, x1, y1 = BOX_X, 20, W - 4, H - 4
@@ -272,6 +331,7 @@ class SkywatchModule(Module):
         if a is None:
             d.text((x0 + 4, y), "NO TRAFFIC", font=FONT_M,
                    fill=LABEL)
+            self._tally_footer(d, x0, x1, y1, y + 16)
             return
         ga = not a["call"] or a["call"] == a["reg"]
         title = a["reg"] if ga else a["call"]
@@ -350,6 +410,7 @@ class SkywatchModule(Module):
             d.text((x0 + 4, y), k, font=FONT_S, fill=LABEL)
             d.text((x0 + 32, y), v, font=FONT_S, fill=VALUE)
             y += 11
+        self._tally_footer(d, x0, x1, y1, y)
 
     def draw(self, ctx):
         self._sync_fetch_s()
@@ -386,8 +447,15 @@ class SkywatchModule(Module):
         if age is not None and age > 180:
             d.text((W - 40, 4), "STALE", font=FONT_M,
                    fill=(255, 176, 0))
+        # the box target: the nearest aircraft that has not landed
+        # at the centre field (slow and over it = on the ground)
+        target = None
+        for a in self.aircraft:
+            if not _is_landed(a):
+                target = a
+                break
         shown = []
-        for a in reversed(self.aircraft):
+        for a in self.aircraft:
             lat, lon = a["lat"], a["lon"]
             if a["gs"] and a["track"] is not None and age is not None:
                 lat, lon = _advance(lat, lon, a["track"], a["gs"],
@@ -399,9 +467,9 @@ class SkywatchModule(Module):
                 math.radians(lat0)) / nm * R
             y = CY - (lat - lat0) * 60.0 / nm * R
             shown.append((a, x, y))
-        shown.reverse()
-        label_spots = []
-        for i, (a, x, y) in enumerate(shown):
+        # dots and vectors, farthest first so the near ones paint
+        # on top; the box target gets the white heart + ring
+        for a, x, y in reversed(shown):
             color = _band_color(a["alt"])
             if a["track"] is not None and a["gs"] and a["gs"] > 20:
                 ln = min(R, _vector_px(a["gs"], nm))
@@ -409,44 +477,46 @@ class SkywatchModule(Module):
                 d.line([(x, y), (x + ln * math.sin(rad),
                                  y - ln * math.cos(rad))],
                        fill=color)
-            if i == 0:  # the nearest: white heart, band-colour ring
+            if a is target:
                 d.ellipse([x - 4, y - 4, x + 4, y + 4], outline=color,
                           width=2)
                 d.ellipse([x - 1, y - 1, x + 1, y + 1],
                           fill=(255, 255, 255))
             else:
                 d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=color)
-            if i < 2 and a["call"]:
-                # label beside the dot, on the side the trend vector
-                # is NOT pointing (else the vector's tip hides
-                # behind the label); fall back to the other side on
-                # a collision, else skip the label
-                tw = d.textlength(a["call"], font=FONT_S)
-                sides = (x + 6, x - 6 - tw)
-                if a["track"] is not None and math.sin(
-                        math.radians(a["track"])) > 0.3:
-                    sides = sides[::-1]
-                for lx in sides:
-                    if lx < 2 or lx + tw > BOX_X - 2:
-                        continue
-                    if any(abs(lx - ox) < 44 and abs(y - oy) < 12
-                           for ox, oy in label_spots):
-                        continue
-                    # knock out a backing patch so a trend vector
-                    # passing behind the label doesn't strike
-                    # through the text
-                    d.rectangle([lx - 1, y - 6, lx + tw + 1, y + 5],
-                                fill=(2, 6, 12))
-                    d.text((lx, y - 5), a["call"], font=FONT_S,
-                           fill=color)
-                    label_spots.append((lx, y))
-                    break
+        # labels in priority order: the box target first, then the
+        # next nearest - beside the dot, on the side the trend
+        # vector is NOT pointing, with a knocked-out backing patch
+        label_spots = []
+        label_order = sorted(
+            shown, key=lambda e: (e[0] is not target, e[0]["dist"]))
+        for a, x, y in label_order[:2]:
+            if not a["call"]:
+                continue
+            color = _band_color(a["alt"])
+            tw = d.textlength(a["call"], font=FONT_S)
+            sides = (x + 6, x - 6 - tw)
+            if a["track"] is not None and math.sin(
+                    math.radians(a["track"])) > 0.3:
+                sides = sides[::-1]
+            for lx in sides:
+                if lx < 2 or lx + tw > BOX_X - 2:
+                    continue
+                if any(abs(lx - ox) < 44 and abs(y - oy) < 12
+                       for ox, oy in label_spots):
+                    continue
+                d.rectangle([lx - 1, y - 6, lx + tw + 1, y + 5],
+                            fill=(2, 6, 12))
+                d.text((lx, y - 5), a["call"], font=FONT_S,
+                       fill=color)
+                label_spots.append((lx, y))
+                break
         if not shown and age is not None:
             msg = "NO AIRCRAFT IN %d NM" % nm
             tw = d.textlength(msg, font=FONT_S)
             d.text((CX - tw / 2, CY - 5), msg, font=FONT_S,
                    fill=LABEL)
-        self._box(d, self.aircraft[0] if self.aircraft else None)
+        self._box(d, target)
         return img
 
     def admin_fields(self):

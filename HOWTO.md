@@ -139,7 +139,14 @@ git run as root has no key and GitHub answers "Permission denied
     adsbdb.com (callsign → airline + origin/destination; hex →
     registered owner), looked up only for the nearest few aircraft
     and cached for the session — a GA tail simply has no route,
-    which the box treats as normal, not as an error.
+    which the box treats as normal, not as an error. The box
+    target is the nearest aircraft that has not landed: within
+    2 nm of the centre at under 40 knots counts as on the ground,
+    and the box (and the scope's ring marker) move to the next
+    one. The day's tally of unique aircraft is kept in
+    skywatch_tally.json beside the config (git-ignored, best-
+    effort writes), resets at local midnight, and prints at the
+    box's bottom only when the content above leaves room.
 
 ## Troubleshooting
 
