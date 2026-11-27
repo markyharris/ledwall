@@ -314,6 +314,19 @@ git run as root has no key and GitHub answers "Permission denied
     or dropped - never truncated into a stub that reads as a
     typo.
 
+24. **Test the loop's contract, not just the module (Nov 27).**
+    The Launch Board drew perfect frames in its own tests, then
+    wedged the real wall on its splash: the main loop reads
+    `module.dot_count` after every draw, the Launch Board never
+    set one, and the loop's keep-last-frame rule held the
+    splash forever, logging the AttributeError every 30 s.
+    Three-layer fix: the base Module class now defaults
+    `dot_count = 0`, the loop reads it with getattr, and
+    `test_all_modules.py` walks every registered module
+    through setup + draw + the loop's own attribute accesses.
+    A module test that never touches the framework's contract
+    proves the picture, not the module.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

@@ -308,7 +308,7 @@ def main():
                 else:
                     frame = fade_frame(fade_from, frame, t)
             state.frame = frame
-            state.dots = module.dot_count
+            state.dots = getattr(module, "dot_count", 0)
             display.show(frame, "weather")
             last_frame = frame
             delay = 0.1 if fade_from is not None else \

@@ -151,6 +151,7 @@ class LaunchesModule(Module):
         self.proj = Projection(get_region("WORLD")["bbox"])
         self.launches = []
         self.fetched = 0.0
+        self.dot_count = 0
 
     def refresh_data(self):
         try:
@@ -163,6 +164,7 @@ class LaunchesModule(Module):
             if parsed:
                 self.launches = parsed
                 self.fetched = time.time()
+                self.dot_count = len(parsed)
         except Exception:
             pass  # throttled or down: keep the last good list
 

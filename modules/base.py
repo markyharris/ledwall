@@ -19,6 +19,10 @@ class Module:
     #                 refresh_s (the weather map's setting) rules
     tick_s = 0  # >0: draw() is called every tick_s seconds with an
     # incrementing tick counter (animation); 0 = draw only on refresh
+    dot_count = 0  # items plotted, for the admin status line; the
+    # main loop reads it after every draw, so it must exist on
+    # every module (the Launch Board shipped without it and
+    # wedged the wall on its splash - Nov 27)
 
     def setup(self, config):
         self.config = config
