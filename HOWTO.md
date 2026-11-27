@@ -72,6 +72,26 @@ git run as root has no key and GitHub answers "Permission denied
 6. **`config.json` is git-ignored on purpose** (v1's `data.txt` got
    clobbered by file copies). Saves are atomic (tmp file + replace)
    and failures surface on the admin page instead of failing silently.
+7. **World data is built, not fetched at runtime.** Country
+   boundaries (Natural Earth 110m) and the world station list (the
+   METAR stations in aviationweather.gov's own published station
+   cache — 7,746 of them) are baked into `data/` by
+   `scripts/build_world_data.py`, run on a desktop. The Pi only ever
+   asks the weather API for the current region's ids (a country is
+   one chunk; the whole world is 26). Two traps the build already
+   handles: AWC's CDN truncates urllib downloads, so the script
+   prefers curl; and "Georgia" is both a state and a country — the
+   country's region key is `GEORGIA_COUNTRY`, and the boundary
+   polygon cache is keyed by dataset as well as name. Coverage is
+   the API's coverage: dense over North America and Europe, honest
+   dark patches where the world doesn't report METARs.
+8. **Fetches run on a background thread.** `refresh_data` never runs
+   in the draw loop, so a slow fetch (the API has multi-minute slow
+   patches; a world fetch is 26 chunks) can't freeze the icon
+   animation — new data swaps in when it lands. Data carries across
+   a region switch only when the new view's stations were covered
+   by the old fetch (a world view covers its countries; US views
+   share one list); otherwise the switch fetches fresh at once.
 
 ## Troubleshooting
 

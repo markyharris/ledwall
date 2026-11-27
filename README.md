@@ -11,14 +11,19 @@ reference and the rollback.
 - **Flight-category dots** in the classic colours — VFR green, MVFR
   blue, IFR red, LIFR magenta, no-category grey — plotted by priority
   thinning so the worst weather wins a crowded pixel.
-- **Regions**: the whole CONUS, or any US state zoomed to fill the
-  wall (states are generated from the boundary data; a state view
-  clips to its own outline and shows only its own airports). Pick 2+
+- **Regions**: 232 of them. The whole CONUS, any US state, the whole
+  WORLD, EUROPE, or any country on Earth zoomed to fill the wall —
+  states and countries are generated from the boundary data, and a
+  zoomed view clips to its own outline and shows only its own
+  airports. World stations are the ~7,750 METAR reporters
+  aviationweather.gov itself carries, selected per region. Pick
   regions in the admin and the wall **rotates** through them, each
   for a configurable number of seconds; every cycle leads with the
   main Region view (the whole picture, for context) before the
-  picked zooms. Region changes — manual or rotating — apply live,
-  no restart.
+  picked zooms — a world tour is CONUS, then Europe, then Japan…
+  Region changes — manual or rotating — apply live, no restart.
+  Fetches run on a background thread, so even a world fetch (26 API
+  chunks) never freezes the wall's animation.
 - **Weather icons** over the stations reporting them — thunderstorm,
   snow, rain/drizzle, fog/mist, hail — each kind individually
   toggleable, with a fade (4-second breathing cycle, hot peak), blink,
@@ -58,7 +63,8 @@ run.py            entry point: splash, admin thread, update checker,
 preview.py        render frames to PNG without hardware
 core/
   geo.py          equirectangular projection (cos-lat corrected)
-  regions.py      region presets: CONUS + every US state, generated
+  regions.py      CONUS/WORLD/EUROPE presets + every US state and
+                  every country, generated from the boundary data
   metar.py        aviationweather.gov JSON fetcher (see HOWTO)
   render.py       base maps, dots, icons, label, clock, legend
   display.py      MatrixDisplay (hzeller) / FileDisplay (previews)
@@ -74,6 +80,13 @@ admin/
 data/
   us-states.json    state boundaries (PublicaMundi, public domain)
   us_stations.json  the ~2,950 US station ids fetched each cycle
+  world-countries.json  country boundaries (Natural Earth 110m,
+                  public domain, slimmed by scripts/build_world_data.py)
+  world_stations.json   the ~7,750 METAR stations AWC carries,
+                  selected per region by bounding box
+scripts/
+  build_world_data.py   rebuilds the two world data files from their
+                  public sources (desktop only, never on the Pi)
 ```
 
 ## Admin page

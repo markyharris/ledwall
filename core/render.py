@@ -361,8 +361,11 @@ def _feature_polys(region):
     name = region.get("feature")
     if not name:
         return None
-    if name in _FEATURE_POLYS:
-        return _FEATURE_POLYS[name]
+    # Keyed by dataset as well as name: Georgia is both a US state and
+    # a country, in different boundary files.
+    cache_key = (region["boundaries"], name)
+    if cache_key in _FEATURE_POLYS:
+        return _FEATURE_POLYS[cache_key]
     polys = []
     try:
         with open(os.path.join(DATA_DIR, region["boundaries"])) as f:
@@ -377,8 +380,8 @@ def _feature_polys(region):
                 polys.extend(p[0] for p in g["coordinates"])
     except Exception:
         polys = []
-    _FEATURE_POLYS[name] = polys or None
-    return _FEATURE_POLYS[name]
+    _FEATURE_POLYS[cache_key] = polys or None
+    return _FEATURE_POLYS[cache_key]
 
 
 def _inside_polys(lon, lat, polys):

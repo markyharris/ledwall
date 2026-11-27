@@ -8,6 +8,13 @@ US states are generated from the boundaries file itself: each state
 becomes a zoomed region showing only its own outline (the "feature"
 key filters the base-map draw). The national station fetch is shared;
 the projection simply plots only what falls inside the state.
+
+Phase 3 (the world build) adds WORLD and EUROPE presets plus a
+generated region per country from Natural Earth boundaries. World
+regions carry "stations": "world" - their station ids come from the
+AWC METAR station list, selected by bounding box (see
+scripts/build_world_data.py); country views clip to their outline
+exactly like states.
 """
 import json
 import os
@@ -58,6 +65,37 @@ def _state_regions():
     return out
 
 
+def _country_regions(taken):
+    try:
+        with open(os.path.join(_DATA, "world-countries.json")) as f:
+            geojson = json.load(f)
+    except Exception:
+        return {}
+    out = {}
+    for feature in geojson["features"]:
+        name = feature["properties"].get("name")
+        if not name:
+            continue
+        key = "".join(ch if ch.isalnum() else "_"
+                      for ch in name.upper()).strip("_")
+        while "__" in key:
+            key = key.replace("__", "_")
+        if key in taken or key in out:
+            key += "_COUNTRY"  # e.g. Georgia the country vs the state
+        lon0, lat0, lon1, lat1 = _geom_bbox(feature["geometry"])
+        out[key] = {
+            "title": name,
+            "label": name,
+            "bbox": (lon0 - 0.6, max(-85.0, lat0 - 0.45),
+                     lon1 + 0.6, min(85.0, lat1 + 0.45)),
+            "boundaries": "world-countries.json",
+            "feature": name,
+            "min_sep": 2,
+            "stations": "world",
+        }
+    return out
+
+
 REGIONS = {
     "CONUS": {
         "title": "Continental US",
@@ -66,9 +104,25 @@ REGIONS = {
         "boundaries": "us-states.json",
         "min_sep": 3,
     },
-    # World presets land with the phase 3 build (EUROPE, WORLD, ...).
+    "WORLD": {
+        "title": "Whole world",
+        "label": "WORLD",
+        "bbox": (-180.0, -60.0, 180.0, 85.0),
+        "boundaries": "world-countries.json",
+        "min_sep": 2,
+        "stations": "world",
+    },
+    "EUROPE": {
+        "title": "Europe",
+        "label": "EUROPE",
+        "bbox": (-12.0, 35.0, 33.0, 71.0),
+        "boundaries": "world-countries.json",
+        "min_sep": 2,
+        "stations": "world",
+    },
 }
 REGIONS.update(_state_regions())
+REGIONS.update(_country_regions(set(REGIONS)))
 
 
 def get_region(name):

@@ -33,6 +33,21 @@ def update_checker(state):
         time.sleep(3600)
 
 
+def _run_fetch(module, state, flag):
+    """Fetch worker: refresh_data runs on its own thread so a slow
+    fetch (a world view pulls thousands of stations) never freezes
+    the wall's animation; the new data swaps in when it lands. Errors
+    are logged, never raised into the loop."""
+    try:
+        module.refresh_data()
+        state.stations = len(module.metars)
+        state.last_fetch = time.time()
+    except Exception:
+        traceback.print_exc()
+    finally:
+        flag["busy"] = False
+
+
 def effective_brightness(cfg, now=None):
     """Admin brightness, with the night override when night mode is on.
     The night window is the owner's night_start/night_end (local time,
@@ -105,17 +120,23 @@ def apply_live_config(module, state, live, view, now):
     """Adopt a freshly loaded config in the running loop. Settings go
     straight to the module; a region change - the owner's edit, or the
     rotation arriving at its next region - rebuilds the module for the
-    new view on the spot, no restart (Mark's ask). The fetched data is
-    national and identical for every region, so it carries over and
-    the new view is just a re-projection. Returns (module, switched).
+    new view on the spot, no restart (Mark's ask). Already-fetched
+    data carries over when the new view's station list is covered by
+    the old fetch (US views share one national list; a world view
+    covers its countries) - then the switch is a pure re-projection.
+    Otherwise the data is dropped and the loop fetches for the new
+    view at once. Returns (module, switched).
     """
     want = desired_region(state, live, view, now)
     if live.get("module") != state.module_name or want != state.region:
         new_module = MODULES[live["module"]]()
-        carried = getattr(module, "metars", None)
         setup_cfg = dict(live)
         setup_cfg["region"] = want
         new_module.setup(setup_cfg)
+        carried = getattr(module, "metars", None)
+        if carried and not set(new_module.station_ids) <= \
+                set(getattr(module, "station_ids", [])):
+            carried = None  # the old fetch never asked for these
         if carried:
             new_module.metars = carried
             new_module._dirty = True
@@ -149,6 +170,7 @@ def main():
     last_frame = None
     fade_from = None
     fade_start = 0.0
+    fetching = {"busy": False}
     while True:
         try:
             cfg = config_mod.load()
@@ -158,10 +180,11 @@ def main():
                 fade_from, fade_start = last_frame, time.time()
             if switched and not getattr(module, "metars", None):
                 next_fetch = 0.0  # nothing carried over: fetch at once
-            if time.time() >= next_fetch:
-                module.refresh_data()
-                state.stations = len(module.metars)
-                state.last_fetch = time.time()
+            if time.time() >= next_fetch and not fetching["busy"]:
+                fetching["busy"] = True
+                threading.Thread(target=_run_fetch,
+                                 args=(module, state, fetching),
+                                 daemon=True).start()
                 next_fetch = time.time() + cfg["refresh_s"]
             display.set_brightness(effective_brightness(cfg))
             frame = module.draw(tick)

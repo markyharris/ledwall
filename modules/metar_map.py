@@ -15,6 +15,25 @@ from .base import Module
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
+_WORLD_STATIONS = None
+
+
+def _station_ids(region):
+    """Station ids to fetch for a region. US views share the national
+    list; world views select from the AWC METAR station list by the
+    region's bounding box (country views then clip to the outline)."""
+    global _WORLD_STATIONS
+    if region.get("stations") == "world":
+        if _WORLD_STATIONS is None:
+            with open(os.path.join(DATA_DIR, "world_stations.json")) as f:
+                _WORLD_STATIONS = json.load(f)
+        lon0, lat0, lon1, lat1 = region["bbox"]
+        return [s["id"] for s in _WORLD_STATIONS
+                if lon0 <= s["lon"] <= lon1
+                and lat0 <= s["lat"] <= lat1]
+    with open(os.path.join(DATA_DIR, "us_stations.json")) as f:
+        return json.load(f)
+
 
 # Icon fade curve over one 4-second cycle at the 4 Hz tick: a gentle
 # breathing pulse that never quite reaches invisible, and whose peak
@@ -34,8 +53,7 @@ class MetarMapModule(Module):
         super().setup(config)
         self.region = get_region(config.get("region", "CONUS"))
         self.base = render.build_base(self.region)
-        with open(os.path.join(DATA_DIR, "us_stations.json")) as f:
-            self.station_ids = json.load(f)
+        self.station_ids = _station_ids(self.region)
         self.metars = {}
         self.dot_count = 0
         self._dot_frame = None
