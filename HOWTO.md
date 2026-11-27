@@ -355,6 +355,22 @@ git run as root has no key and GitHub answers "Permission denied
     one declination/RA computation per rebuild), so it bends
     with the seasons and ends at the polar caps on its own.
 
+27. **Removing a module is a registry edit, not a demolition
+    (Nov 27).** The Pond was retired at the owner's word -
+    twelve modules is an even number, and the Aquarium carries
+    the ambient-water brief now. The removal touched the
+    registry, the admin section and its save parsing, the
+    config defaults, and the README (whose numbered module
+    list renumbered) - and nothing else had to change, because
+    the loop already treats unknown module keys safely: the
+    rotation cycle is built by filtering the saved list
+    through the registry, and the displayed module falls back
+    to the weather map. A saved config that still names the
+    pond, in the rotation or as the current view, therefore
+    degrades quietly instead of wedging the wall. The code
+    itself remains in git history, one checkout away if it is
+    ever wanted back.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

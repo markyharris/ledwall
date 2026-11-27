@@ -42,25 +42,16 @@ reference and the rollback.
 - **Zulu clock** (HH:MMZ, UTC) in the top-right corner.
 - **Night mode**: dims to a separate brightness during the owner's
   chosen night hours (default 22:00–06:00).
-- **Second module — the Pond**: an ambient water simulation for when
-  the wall isn't on weather duty. A two-buffer wave sim (half
-  resolution, 2×2 LEDs per cell) takes rain drops and occasional
-  pebbles; the height field is coloured by a chromostereoptic ramp —
-  troughs in receding blues, crests in advancing ambers and reds —
-  with slope shading over it, so the ripples read as real ridges and
-  troughs standing out of the wall. Rain rate, pebble interval and
-  relief strength are all in the admin; pick the module itself from
-  Display → "Show on the wall".
-- **Third module — the Aquarium**: a saltwater scene built for depth.
+- **Second module — the Aquarium**: a saltwater scene built for depth.
   The set (water, rock ridge, sand, corals) is static; the life is
   drawn back-to-front in three depth planes — far fish small, blue
   and slow behind the rocks, near fish large and warm in front —
   stacking occlusion, motion parallax, atmospheric blue shift and
-  the same ChromaDepth-ordered palette as the pond (reds nearest,
+  a ChromaDepth-ordered palette (reds nearest,
   blues farthest). Swaying surface rays, caustic shimmer, rising
   bubbles and a turtle that crosses every so often. Fish density,
   turtle interval and the rays are all in the admin.
-- **Fourth module — Overhead Aircraft**: a radar scope of the real
+- **Third module — Overhead Aircraft**: a radar scope of the real
   sky, from the free community ADS-B feed (adsb.lol) — no antenna
   and no account; the area is already covered by volunteers'
   receivers. Aircraft within the chosen range (25/50/100 nm of the
@@ -87,7 +78,7 @@ reference and the rollback.
   the checked modules, each for a chosen dwell, crossfading
   between them. The weather map's region rotation keeps working
   while the map is up.
-- **Fifth module — Tonight's Sky**: a planisphere of the sky over
+- **Fourth module — Tonight's Sky**: a planisphere of the sky over
   the house. Bright stars sized by magnitude (the brightest
   twinkle), the Milky Way as a soft blurred wash along the
   galactic equator, the planets as coloured dots with labels, and
@@ -95,14 +86,14 @@ reference and the rollback.
   it previews tonight at the end of astronomical twilight. The
   side column lists sunset, full dark, moonrise and phase, and
   the planets that are up.
-- **Sixth module — Sun and Moon**: the day's two clocks. Today's
+- **Fifth module — Sun and Moon**: the day's two clocks. Today's
   sun path as an arc with sunrise/sunset, golden-hour shading,
   twilight ticks, day length and solar noon, beside a big moon
   disc at its true phase with its name, illumination, age and
   rise/set times; the bottom strip shows tonight's dark window
   and the next full moon. Both sky modules are computed on the
   Pi by `core/astro.py` from the wall's location — no feeds.
-- **Seventh module — ISS Tracker**: the space station on the
+- **Sixth module — ISS Tracker**: the space station on the
   world map — ground track for the last and next 45 minutes,
   its visible-horizon footprint circle, the night side of the
   Earth shaded from the sun's computed position, and a marker
@@ -111,18 +102,18 @@ reference and the rollback.
   pass). Elements come from CelesTrak every six hours and are
   propagated on the Pi by `core/orbit.py`, a small J2
   propagator validated against the live position.
-- **Eighth module — Earthquake Map**: every M4.5+ earthquake of
+- **Seventh module — Earthquake Map**: every M4.5+ earthquake of
   the past 24 hours or 7 days from the USGS feed, sized by
   magnitude and fading with age; M6+ events get a ring and the
   largest three are labelled. The strip gives the count, the
   largest event and the most recent one.
-- **Ninth module — Live Radar**: NEXRAD reflectivity over the
+- **Eighth module — Live Radar**: NEXRAD reflectivity over the
   Southwest from the RainViewer mosaic (no key), refreshed
   every five minutes and animated as a loop of the last six
   frames, reprojected onto the wall's state outlines. Range
   rings at 50/100/150 miles around home and the region's
   cities stay readable on top of the echoes.
-- **Tenth module — Aurora & Space Weather**: NOAA SWPC's
+- **Ninth module — Aurora & Space Weather**: NOAA SWPC's
   OVATION aurora probability plotted over the night-shaded
   world map, with the planetary K index and the live solar
   wind (speed and Bz from the L1 monitors) in the strip, plus
@@ -162,7 +153,6 @@ core/
 modules/
   base.py         module contract
   metar_map.py    the weather map module
-  pond.py         the pond module: wave sim + relief shading
   aquarium.py     the aquarium module: layered depth-plane scene
   skywatch.py     the overhead-aircraft module: ADS-B scope
   tonight.py      Tonight's Sky: planisphere dome + evening facts

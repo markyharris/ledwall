@@ -38,7 +38,7 @@ PAGE = """<!DOCTYPE html>
  section{border:1px solid #333;border-radius:8px;padding:12px 16px;margin:12px 0}
  section h2{margin:0 0 10px;font-size:16px}
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
- .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
+ .a-aquarium h2{color:#ffa040}
  .a-sky h2{color:#ff8a5c}.a-rotate h2{color:#c792ff}
  .a-tonight h2{color:#9db4ff}.a-sunmoon h2{color:#ffd76a}
 .a-iss h2{color:#96e1ff}.a-quakes h2{color:#ffbe78}
@@ -146,23 +146,6 @@ PAGE = """<!DOCTYPE html>
  <div><button type="submit">Save settings</button></div>
 </section>
 
-<section class="a-pond"><h2>Pond</h2>
- <label>Rain
-  <select name="pond_drop_s">
-   <option value="0" {% if cfg.pond_drop_s == 0 %}selected{% endif %}>Off</option>
-   <option value="6" {% if cfg.pond_drop_s == 6 %}selected{% endif %}>Light (a drop every ~6 s)</option>
-   <option value="2.5" {% if cfg.pond_drop_s == 2.5 %}selected{% endif %}>Steady (every ~2.5 s)</option>
-   <option value="1" {% if cfg.pond_drop_s == 1 %}selected{% endif %}>Heavy (every second)</option>
-  </select></label>
- <label>Pebble every
-  <input type="number" name="pond_pebble_s" min="0" max="600" step="5" value="{{ cfg.pond_pebble_s }}"> seconds (0 = no pebbles)</label>
- <label>Relief strength <span class="val" id="pv">{{ cfg.pond_relief }}</span></label>
- <input type="range" name="pond_relief" min="0" max="100" value="{{ cfg.pond_relief }}"
-        oninput="document.getElementById('pv').textContent=this.value">
- <div class="dim">How hard the ridges and troughs push out of the wall - the color-depth effect plus slope shading. Tune it to your eyes and your room.</div>
- <div><button type="submit">Save settings</button></div>
-</section>
-
 <section class="a-aquarium"><h2>Aquarium</h2>
  <label>Fish
   <select name="aq_fish">
@@ -173,7 +156,7 @@ PAGE = """<!DOCTYPE html>
  <label>Turtle crosses every
   <input type="number" name="aq_turtle_s" min="0" max="600" step="10" value="{{ cfg.aq_turtle_s }}"> seconds (0 = never)</label>
  <label class="chk"><input type="checkbox" name="aq_rays" {% if cfg.aq_rays %}checked{% endif %}> Surface light rays</label>
- <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the same color-depth effect as the pond, put to work.</div>
+ <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the color-depth effect put to work.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 
@@ -435,25 +418,6 @@ def create_app(state, regions, modules=None):
         except ValueError:
             module_rotate_s = cfg.get("module_rotate_s", 120)
         cfg["module_rotate_s"] = min(3600, max(10, module_rotate_s))
-        try:
-            cfg["pond_drop_s"] = min(60.0, max(0.0, float(
-                request.form.get("pond_drop_s",
-                                 cfg.get("pond_drop_s", 2.5)))))
-        except ValueError:
-            pass  # keep the previous value
-        try:
-            pebble = int(request.form.get(
-                "pond_pebble_s", cfg.get("pond_pebble_s", 30)))
-        except ValueError:
-            pebble = cfg.get("pond_pebble_s", 30)
-        cfg["pond_pebble_s"] = 0 if pebble == 0 else min(
-            600, max(10, pebble))
-        try:
-            cfg["pond_relief"] = min(100, max(0, int(
-                request.form.get("pond_relief",
-                                 cfg.get("pond_relief", 70)))))
-        except ValueError:
-            pass
         aq_fish = request.form.get("aq_fish", cfg.get("aq_fish"))
         if aq_fish in ("quiet", "lively", "full"):
             cfg["aq_fish"] = aq_fish  # unknown densities are ignored

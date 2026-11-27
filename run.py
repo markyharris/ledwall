@@ -30,14 +30,13 @@ from ledwall.modules.iss import IssModule
 from ledwall.modules.launches import LaunchesModule
 from ledwall.modules.metar_map import MetarMapModule
 from ledwall.modules.metar_world import MetarWorldModule
-from ledwall.modules.pond import PondModule
 from ledwall.modules.quakes import QuakesModule
 from ledwall.modules.radar import RadarModule
 from ledwall.modules.skywatch import SkywatchModule
 from ledwall.modules.sunmoon import SunMoonModule
 from ledwall.modules.tonight import TonightModule
 
-MODULES = {"metar_map": MetarMapModule, "pond": PondModule,
+MODULES = {"metar_map": MetarMapModule,
            "aquarium": AquariumModule, "skywatch": SkywatchModule,
            "tonight": TonightModule, "sunmoon": SunMoonModule,
            "iss": IssModule, "quakes": QuakesModule,
@@ -230,7 +229,7 @@ def main():
     state.region = cfg["region"]
 
     base = getattr(module, "base", None)
-    if base is None:  # a module with no map of its own (the pond)
+    if base is None:  # a module with no map of its own
         base = Image.new("RGB", (CANVAS_W, CANVAS_H))
     display.show(splash.render_splash(base, local_ip(wait_s=30)),
                  "splash")

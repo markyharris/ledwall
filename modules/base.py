@@ -29,7 +29,7 @@ class Module:
 
     def refresh_data(self):
         """Fetch fresh data, on the loop's background thread. Modules
-        with nothing to fetch (the pond) inherit this no-op."""
+        with nothing to fetch (Day & Night) inherit this no-op."""
 
     def draw(self, ctx):
         raise NotImplementedError

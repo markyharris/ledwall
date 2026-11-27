@@ -12,8 +12,8 @@ back-to-front order, which is where the 3D comes from:
   way real water eats colour with distance;
 - chromostereopsis - the palette is authored in ChromaDepth order
   (saturated reds and oranges nearest, receding blues farthest),
-  the same trick the pond uses, so the warm foreground genuinely
-  seems to float off the panels;
+  so the warm foreground genuinely seems to float off the
+  panels;
 - framing - dark rocks with warm coral intrude into the two near
   corners, so the scene reads as looking INTO a tank.
 
