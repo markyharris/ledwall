@@ -184,6 +184,20 @@ def main():
                      daemon=True).start()
     threading.Thread(target=update_checker, args=(state,), daemon=True).start()
 
+    # Hold the splash before the loop's first frame overwrites it:
+    # it carries the admin address, and the standing rule is that
+    # the owner can read where to manage the device off the wall
+    # after a boot. The admin is already serving during the hold,
+    # and the first fetch fires the moment the loop starts. (The
+    # hold was missing until Nov 27 - the splash rendered and was
+    # replaced within a blink, so no boot ever visibly showed it.)
+    try:
+        hold = float(cfg.get("splash_hold_s", 3.5))
+    except (TypeError, ValueError):
+        hold = 3.5
+    if hold > 0:
+        time.sleep(hold)
+
     next_fetch = 0.0
     tick = 0
     view = {}

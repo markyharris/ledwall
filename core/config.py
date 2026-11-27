@@ -28,6 +28,7 @@ DEFAULTS = {
     "icon_anim": "fade",
     "brightness": 60,
     "refresh_s": 300,
+    "splash_hold_s": 3.5,
     "night_mode": False,
     "night_brightness": 25,
     "night_start": "22:00",

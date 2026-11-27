@@ -158,6 +158,15 @@ git run as root has no key and GitHub answers "Permission denied
     to the weather map; other modules keep their state across
     rotation ticks, and a future stall now degrades to a STALE
     marker over the last picture instead of a blank scope.
+14. **A splash nobody sees is not a splash (fixed Nov 27).** The
+    boot splash rendered and the module loop overwrote it within
+    a fraction of a second — the hold was never implemented, so
+    the admin address the splash exists to announce was never
+    readable on the wall. The entry point now holds the splash
+    for `splash_hold_s` (default 3.5) with the admin already
+    serving. When a display step is specified ("show X for N
+    seconds"), verify the timing in the running loop, not just
+    that the frame is drawn once.
 
 ## Troubleshooting
 
