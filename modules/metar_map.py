@@ -15,10 +15,12 @@ from .base import Module
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 
-# Icon fade curve over one 2-second cycle at the 4 Hz tick: a gentle
+# Icon fade curve over one 4-second cycle at the 4 Hz tick: a gentle
 # breathing pulse that never quite reaches invisible, and whose peak
-# runs hot (1.25, channels clamp) so the brightest moment pops.
-FADE_LEVELS = (0.30, 0.52, 0.74, 0.99, 1.25, 0.99, 0.74, 0.52)
+# runs hot (1.25, channels clamp) so the brightest moment pops. (The
+# original 2-second cycle felt hurried on the wall - Mark.)
+FADE_LEVELS = (0.30, 0.41, 0.52, 0.63, 0.74, 0.86, 0.99, 1.12,
+               1.25, 1.12, 0.99, 0.86, 0.74, 0.63, 0.52, 0.41)
 
 
 class MetarMapModule(Module):
