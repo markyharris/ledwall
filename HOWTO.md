@@ -168,6 +168,24 @@ git run as root has no key and GitHub answers "Permission denied
     seconds"), verify the timing in the running loop, not just
     that the frame is drawn once.
 
+15. **Module rotation is the outer loop; region rotation stays
+    inside the map (Nov 27).** The wall learned to rotate through
+    modules (admin → Module Rotation: pick the modules, set the
+    dwell). `desired_module` mirrors `desired_region` exactly —
+    the cycle leads with the "Show on the wall" module, each
+    module gets its full dwell, a changed cycle adopts the current
+    view when it can — and it keeps its state under separate
+    `view` keys so the two rotations never disturb each other.
+    `apply_live_config` asks the module question first and only
+    consults region rotation when the map is the module that
+    belongs up, which is what keeps lesson 13's gate intact. One
+    carry-over refinement came with it: fetched METARs count as
+    covering the new view when the view's station list is a
+    subset of the fetched dict's keys, not only of the old
+    module's station list — a non-map module can hold the dict
+    between map visits, so rotating away and back now restores
+    the map instantly instead of refetching every lap.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

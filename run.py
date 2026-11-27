@@ -111,6 +111,41 @@ def desired_region(state, live, view, now):
     return sequence[idx]
 
 
+def desired_module(state, live, view, now):
+    """Which module belongs on the wall right now. With modules
+    picked for rotation, the cycle always leads with the "Show on
+    the wall" module - the owner's home view - then the picked
+    modules, each shown for module_rotate_s seconds (Mark's ask:
+    a rotator like his other projects). With nothing picked, the
+    single module setting rules. `view` carries the rotation
+    position between ticks, under its own keys so the region
+    rotation's state is never disturbed."""
+    picks = [m for m in live.get("rotate_modules") or []
+             if m in MODULES]
+    base = live.get("module", "metar_map")
+    if base not in MODULES:
+        base = "metar_map"
+    sequence = [base] + [m for m in picks if m != base]
+    if len(sequence) < 2:
+        view["mod_rotation"] = None
+        return base
+    if view.get("mod_rotation") != tuple(sequence):
+        view["mod_rotation"] = tuple(sequence)
+        # A new cycle takes over from the current view when it can:
+        # if this module is in the cycle it keeps its full interval;
+        # otherwise the cycle starts at the home module right away.
+        view["mod_deadline"] = now + max(
+            10, int(live.get("module_rotate_s", 120))) \
+            if state.module_name in sequence else 0.0
+    if state.module_name in sequence and now < view["mod_deadline"]:
+        return state.module_name
+    idx = (sequence.index(state.module_name) + 1) % len(sequence) \
+        if state.module_name in sequence else 0
+    view["mod_deadline"] = now + max(
+        10, int(live.get("module_rotate_s", 120)))
+    return sequence[idx]
+
+
 FADE_S = 0.9  # seconds for a region-switch crossfade
 
 
@@ -132,25 +167,31 @@ def apply_live_config(module, state, live, view, now):
     Otherwise the data is dropped and the loop fetches for the new
     view at once. Returns (module, switched).
     """
-    # Region rotation is a weather-map concern only. Other modules
-    # have no regions, and rebuilding one on a rotation tick wipes
-    # its live state - Skywatch lost its whole traffic picture to a
-    # rotation rebuild during a network stall (Nov 27): the stale
-    # picture it should have kept became an empty WAITING scope.
+    # Module rotation is the outer loop: it decides which module
+    # is up at all. Region rotation is a weather-map concern only,
+    # consulted when the map is the module that belongs up. Other
+    # modules have no regions, and rebuilding one on a region tick
+    # wipes its live state - Skywatch lost its whole traffic
+    # picture to a rotation rebuild during a network stall
+    # (Nov 27): the stale picture it should have kept became an
+    # empty WAITING scope.
+    want_module = desired_module(state, live, view, now)
     want = state.region
-    if live.get("module") == "metar_map":
+    if want_module == "metar_map":
         want = desired_region(state, live, view, now)
-    if live.get("module") != state.module_name or want != state.region:
-        new_module = MODULES.get(live.get("module"),
-                                 MetarMapModule)()
+    if want_module != state.module_name or want != state.region:
+        new_module = MODULES.get(want_module, MetarMapModule)()
         setup_cfg = dict(live)
         setup_cfg["region"] = want
         new_module.setup(setup_cfg)
         carried = getattr(module, "metars", None)
-        if carried and not set(getattr(new_module, "station_ids",
-                                       [])) <= \
-                set(getattr(module, "station_ids", [])):
-            carried = None  # the old fetch never asked for these
+        if carried:
+            want_ids = set(getattr(new_module, "station_ids", []))
+            covered = want_ids <= set(getattr(module, "station_ids",
+                                              [])) or \
+                want_ids <= set(carried.keys())
+            if not covered:
+                carried = None  # the old fetch never asked for these
         if carried:
             new_module.metars = carried
             new_module._dirty = True

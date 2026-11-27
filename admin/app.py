@@ -39,7 +39,7 @@ PAGE = """<!DOCTYPE html>
  section h2{margin:0 0 10px;font-size:16px}
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
  .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
- .a-sky h2{color:#ff8a5c}
+ .a-sky h2{color:#ff8a5c}.a-rotate h2{color:#c792ff}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -85,6 +85,17 @@ PAGE = """<!DOCTYPE html>
         Zulu clock (UTC, top-right corner)</label>
 </section>
 
+<section class="a-rotate"><h2>Module Rotation</h2>
+ <label>Rotate through these modules
+  <select name="rotate_modules" multiple size="5">{% for key, title in modules %}
+   <option value="{{ key }}" {% if key in cfg.rotate_modules %}selected{% endif %}>{{ title }}</option>{% endfor %}
+  </select></label>
+ <label>Show each module for
+  <input type="number" name="module_rotate_s" min="10" max="3600" step="10" value="{{ cfg.module_rotate_s }}"> seconds</label>
+ <div class="dim">The wall shows the "Show on the wall" module first, then cycles through the picked modules, each for the interval above, and back to the start. Pick none (or only that same module) and the wall stays put. The weather map's own region rotation keeps working while the map is up.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+
 <section class="a-module"><h2>Weather Map</h2>
  <label>Region
   <select name="region">{% for r in regions %}
@@ -123,6 +134,7 @@ PAGE = """<!DOCTYPE html>
         oninput="document.getElementById('rv').textContent=this.value">
  <div style="margin-top:10px"><img src="/legend.png" alt="Map legend"
       style="max-width:100%;border:1px solid #333;border-radius:6px"></div>
+ <div><button type="submit">Save settings</button></div>
 </section>
 
 <section class="a-pond"><h2>Pond</h2>
@@ -286,6 +298,15 @@ def create_app(state, regions, modules=None):
         mod = request.form.get("module", cfg.get("module", "metar_map"))
         if mod in dict(modules):
             cfg["module"] = mod  # an unknown module name is ignored
+        cfg["rotate_modules"] = [
+            m for m in request.form.getlist("rotate_modules")
+            if m in dict(modules)]
+        try:
+            module_rotate_s = int(request.form.get(
+                "module_rotate_s", cfg.get("module_rotate_s", 120)))
+        except ValueError:
+            module_rotate_s = cfg.get("module_rotate_s", 120)
+        cfg["module_rotate_s"] = min(3600, max(10, module_rotate_s))
         try:
             cfg["pond_drop_s"] = min(60.0, max(0.0, float(
                 request.form.get("pond_drop_s",

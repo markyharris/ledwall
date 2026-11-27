@@ -15,6 +15,8 @@ DEFAULTS = {
     "region": "CONUS",
     "rotate_regions": [],
     "rotate_s": 120,
+    "rotate_modules": [],
+    "module_rotate_s": 120,
     "home_airport": "KFLG",
     "dot_size": 2,
     "show_label": True,
