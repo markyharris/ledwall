@@ -118,8 +118,9 @@ class MetarWorldModule(Module):
         for x, y, cat in cells.values():
             col = render.CATEGORY_COLORS.get(cat,
                                              (90, 90, 90))
-            d.ellipse((x - 1.2, y - 1.2, x + 1.2, y + 1.2),
-                      fill=col)
+            # one station, one LED - anything fatter turns the
+            # dense regions into a solid smear (Mark, Nov 27)
+            d.point((int(x), int(y)), fill=col)
 
         if self.cfg.get("mw_home", True):
             home = (self.cfg.get("home_airport") or "") \
@@ -144,8 +145,8 @@ class MetarWorldModule(Module):
                         fill=(4, 6, 12, 205))
             for i, cat in enumerate(CATS):
                 cy = ly + 5 + i * 11
-                d.ellipse((lx, cy, lx + 5, cy + 5),
-                          fill=render.CATEGORY_COLORS[cat])
+                d.rectangle((lx + 1, cy + 1, lx + 3, cy + 3),
+                            fill=render.CATEGORY_COLORS[cat])
                 d.text((lx + 9, cy - 2), cat, font=f_s,
                        fill=VALUE)
 
