@@ -31,7 +31,7 @@ DEFAULTS = {
     "icon_anim": "fade",
     "brightness": 60,
     "refresh_s": 300,
-    "splash_hold_s": 3.5,
+    "splash_hold_s": 10,
     "night_mode": False,
     "night_brightness": 25,
     "night_start": "22:00",
@@ -89,7 +89,16 @@ def load():
     if os.path.exists(CONFIG_PATH):
         try:
             with open(CONFIG_PATH) as f:
-                cfg.update(json.load(f))
+                stored = json.load(f)
+            # Migration (Nov 27): splash_hold_s shipped at 3.5 s
+            # with no admin control, and every settings save wrote
+            # that default back into the file, pinning it. A stored
+            # 3.5 was never a choice, so it follows the new 10 s
+            # default; any other stored value is the owner's and
+            # stands.
+            if stored.get("splash_hold_s") == 3.5:
+                stored.pop("splash_hold_s")
+            cfg.update(stored)
         except Exception:
             pass  # a corrupt config must never stop the map booting
     return cfg

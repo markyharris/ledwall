@@ -257,9 +257,9 @@ def main():
     # hold was missing until Nov 27 - the splash rendered and was
     # replaced within a blink, so no boot ever visibly showed it.)
     try:
-        hold = float(cfg.get("splash_hold_s", 3.5))
+        hold = float(cfg.get("splash_hold_s", 10))
     except (TypeError, ValueError):
-        hold = 3.5
+        hold = 10
     if hold > 0:
         time.sleep(hold)
 

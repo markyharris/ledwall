@@ -87,6 +87,8 @@ PAGE = """<!DOCTYPE html>
   <input type="text" name="night_end" value="{{ cfg.night_end }}" size="5"> (24-hour)</label>
  <label><input type="checkbox" name="show_clock" {% if cfg.show_clock %}checked{% endif %}>
         Zulu clock (UTC, top-right corner)</label>
+ <label>Boot splash hold
+  <input type="number" name="splash_hold_s" min="0" max="60" step="1" value="{{ cfg.splash_hold_s }}"> seconds (shows the admin address at startup)</label>
  <div><button type="submit">Save settings</button></div>
 </section>
 
@@ -485,6 +487,12 @@ def create_app(state, regions, modules=None):
             cfg[key] = key in request.form
         if request.form.get("quake_period") in ("day", "week"):
             cfg["quake_period"] = request.form["quake_period"]
+        try:
+            cfg["splash_hold_s"] = min(60.0, max(0.0, float(
+                request.form.get("splash_hold_s",
+                                 cfg.get("splash_hold_s", 10)))))
+        except (TypeError, ValueError):
+            pass  # keep the previous hold
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))

@@ -12,7 +12,6 @@ FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 TITLE = "LEDWALL"
-SUBTITLE = "Useful Information"
 VERSION = "v2.0-dev"
 
 
@@ -57,9 +56,8 @@ def render_splash(base_img, ip, port=5000):
                          Image.LANCZOS)
     img.paste(layer, ((CANVAS_W - layer.width) // 2, 16), layer)
     d = ImageDraw.Draw(img)
-    _centred(d, 98, SUBTITLE, _font(FONT, 15), (200, 210, 220))
-    _centred(d, 132, "Admin page:", _font(FONT, 12), (140, 150, 160))
-    _centred(d, 150, "http://%s:%d" % (ip, port), _font(FONT_BOLD, 16),
+    _centred(d, 108, "Admin page:", _font(FONT, 12), (140, 150, 160))
+    _centred(d, 126, "http://%s:%d" % (ip, port), _font(FONT_BOLD, 16),
              (0, 255, 128))
-    _centred(d, 176, VERSION, _font(FONT, 10), (110, 120, 130))
+    _centred(d, 152, VERSION, _font(FONT, 10), (110, 120, 130))
     return img
