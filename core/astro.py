@@ -75,6 +75,14 @@ def sun_altaz(epoch, lat, lon):
     return altaz(ra, dec, epoch, lat, lon)
 
 
+def subsolar(epoch):
+    """(lat, lon) of the point where the sun is directly
+    overhead at this moment: the declination, and the longitude
+    where the sun's hour angle is zero."""
+    ra, dec = sun_radec(epoch)
+    return dec, _wrap180(ra * 15.0 - _gmst_deg(epoch))
+
+
 # --------------------------------------------------------------- moon
 
 def moon_lonlat(epoch):

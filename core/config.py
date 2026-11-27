@@ -64,6 +64,8 @@ DEFAULTS = {
     "launch_provider": True,
     "mw_home": True,
     "mw_legend": True,
+    "dn_shade": True,
+    "dn_sun": True,
 }
 
 

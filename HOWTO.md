@@ -340,6 +340,21 @@ git run as root has no key and GitHub answers "Permission denied
     quick check for whether the lookup or the moment was at
     fault.
 
+26. **Shade both directions when the base is dark (Nov 27).**
+    The Day & Night terminator map first reused the ISS
+    recipe - full base, black wash over the night side - and
+    the split barely read: the world base is intrinsically
+    dark, so darkening the night half only sank dark into
+    darker. The fix composites two versions of the base
+    through a sun-altitude mask (ramping through twilight,
+    blurred): a brightened one on the day side, a deepened one
+    on the night side. When a display's raw material sits near
+    one end of the range, contrast has to be manufactured on
+    both ends. The terminator line itself is found column by
+    column from the sun's computed altitude (scan + bisect,
+    one declination/RA computation per rebuild), so it bends
+    with the seasons and ends at the polar caps on its own.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

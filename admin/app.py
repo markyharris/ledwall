@@ -44,6 +44,7 @@ PAGE = """<!DOCTYPE html>
 .a-iss h2{color:#96e1ff}.a-quakes h2{color:#ffbe78}
 .a-radar h2{color:#7ee787}.a-aurora h2{color:#d18aff}
 .a-launch h2{color:#ffa94d}.a-worldwx h2{color:#6ebeff}
+.a-daynight h2{color:#ffcf5c}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -242,6 +243,12 @@ PAGE = """<!DOCTYPE html>
  <label class="chk"><input type="checkbox" name="mw_home" {% if cfg.mw_home %}checked{% endif %}> Home airport marker (amber ring)</label>
  <label class="chk"><input type="checkbox" name="mw_legend" {% if cfg.mw_legend %}checked{% endif %}> Flight-category legend</label>
  <div class="dim">The whole earth in the info modules' style: every reporting airport as a flight-category dot in the classic colors (green VFR, blue MVFR, red IFR, magenta LIFR), from the same aviationweather.gov feed as the weather map, refreshed every 15 minutes. The strip counts who is reporting and tallies the categories.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+<section class="a-daynight"><h2>Day &amp; Night</h2>
+ <label class="chk"><input type="checkbox" name="dn_shade" {% if cfg.dn_shade %}checked{% endif %}> Shade the night side</label>
+ <label class="chk"><input type="checkbox" name="dn_sun" {% if cfg.dn_sun %}checked{% endif %}> Sun marker where the sun is overhead</label>
+ <div class="dim">The whole earth split by the sun: the bright line is the terminator - sunrise on one side, sunset on the other - computed from the sun's position and redrawn every two minutes as it sweeps west. The strip gives the subsolar point, where it is solar noon on Earth right now.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 <section class="a-launch"><h2>Rocket Launch Board</h2>
@@ -483,7 +490,7 @@ def create_app(state, regions, modules=None):
                     "quake_labels", "radar_animate", "radar_rings",
                     "aurora_oval", "aurora_wind",
                     "launch_sites", "launch_provider",
-                    "mw_home", "mw_legend"):
+                    "mw_home", "mw_legend", "dn_shade", "dn_sun"):
             cfg[key] = key in request.form
         if request.form.get("quake_period") in ("day", "week"):
             cfg["quake_period"] = request.form["quake_period"]

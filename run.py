@@ -25,6 +25,7 @@ from ledwall.core.regions import REGIONS, station_counts
 from ledwall.core.state import AppState
 from ledwall.modules.aquarium import AquariumModule
 from ledwall.modules.aurora import AuroraModule
+from ledwall.modules.daynight import DayNightModule
 from ledwall.modules.iss import IssModule
 from ledwall.modules.launches import LaunchesModule
 from ledwall.modules.metar_map import MetarMapModule
@@ -42,7 +43,8 @@ MODULES = {"metar_map": MetarMapModule, "pond": PondModule,
            "iss": IssModule, "quakes": QuakesModule,
            "radar": RadarModule, "aurora": AuroraModule,
            "launches": LaunchesModule,
-           "metar_world": MetarWorldModule}
+           "metar_world": MetarWorldModule,
+           "daynight": DayNightModule}
 
 
 def update_checker(state):
