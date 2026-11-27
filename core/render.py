@@ -418,6 +418,8 @@ def plot_weather(base, metars, region):
     placed = []
     icons = []
     for rep in reports:
+        if rep.get("lat") is None or rep.get("lon") is None:
+            continue  # no position: unplottable, and never fatal
         if polys and not _inside_polys(rep["lon"], rep["lat"], polys):
             continue
         x, y = proj.xy(rep["lon"], rep["lat"])

@@ -92,6 +92,12 @@ git run as root has no key and GitHub answers "Permission denied
    a region switch only when the new view's stations were covered
    by the old fetch (a world view covers its countries; US views
    share one list); otherwise the switch fetches fresh at once.
+9. **Some world reports arrive without coordinates.** US reports
+   always carry lat/lon; a few international ones omit them, and the
+   first completed world fetch (2,834 reports) crashed the draw on
+   exactly that. `refresh_data` backfills positions from the station
+   directory, and `plot_weather` skips any report still missing
+   them — one bad record can never take the wall down.
 
 ## Troubleshooting
 

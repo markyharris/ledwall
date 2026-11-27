@@ -16,6 +16,7 @@ from .base import Module
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 _WORLD_STATIONS = None
+_WORLD_COORDS = {}  # station id -> (lon, lat), from the same directory
 
 
 def _station_ids(region):
@@ -27,6 +28,8 @@ def _station_ids(region):
         if _WORLD_STATIONS is None:
             with open(os.path.join(DATA_DIR, "world_stations.json")) as f:
                 _WORLD_STATIONS = json.load(f)
+            _WORLD_COORDS.update(
+                {s["id"]: (s["lon"], s["lat"]) for s in _WORLD_STATIONS})
         lon0, lat0, lon1, lat1 = region["bbox"]
         return [s["id"] for s in _WORLD_STATIONS
                 if lon0 <= s["lon"] <= lon1
@@ -68,6 +71,15 @@ class MetarMapModule(Module):
 
     def refresh_data(self):
         self.metars = metar.fetch_metars(self.station_ids)
+        # A few world reports arrive without coordinates - the API
+        # omits lat/lon for some stations - and a report with no
+        # position crashed the draw the first time a full world fetch
+        # completed. The station directory knows where they are.
+        for icao, rep in self.metars.items():
+            if rep.get("lat") is None or rep.get("lon") is None:
+                coords = _WORLD_COORDS.get(icao)
+                if coords:
+                    rep["lon"], rep["lat"] = coords
         self._dirty = True
 
     def draw(self, ctx):
@@ -127,7 +139,8 @@ class MetarMapModule(Module):
         home = (self.config.get("home_airport") or "").strip().upper()
         if home:
             rep = self.metars.get(home)
-            if rep:
+            if rep and rep.get("lat") is not None \
+                    and rep.get("lon") is not None:
                 self._home_cache[home] = (rep["lon"], rep["lat"])
             if home in self._home_cache:
                 lon, lat = self._home_cache[home]
