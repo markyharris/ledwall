@@ -170,6 +170,7 @@ def main():
     last_frame = None
     fade_from = None
     fade_start = 0.0
+    fade_pending = None
     fetching = {"busy": False}
     while True:
         try:
@@ -177,7 +178,7 @@ def main():
             module, switched = apply_live_config(
                 module, state, cfg, view, time.time())
             if switched and last_frame is not None:
-                fade_from, fade_start = last_frame, time.time()
+                fade_pending = last_frame
             if switched and not getattr(module, "metars", None):
                 next_fetch = 0.0  # nothing carried over: fetch at once
             if time.time() >= next_fetch and not fetching["busy"]:
@@ -188,6 +189,15 @@ def main():
                 next_fetch = time.time() + cfg["refresh_s"]
             display.set_brightness(effective_brightness(cfg))
             frame = module.draw(tick)
+            if fade_pending is not None:
+                # Start the fade clock only now that the new frame
+                # exists. Arming it at the switch decision let a slow
+                # first draw (Alaska's outline is the priciest rebuild
+                # on the wall) burn the whole 0.9 s window before the
+                # first blend was ever evaluated - the melt became a
+                # jump cut on that one transition.
+                fade_from, fade_start = fade_pending, time.time()
+                fade_pending = None
             if fade_from is not None:
                 t = (time.time() - fade_start) / FADE_S
                 if t >= 1.0:

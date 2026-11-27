@@ -420,11 +420,15 @@ def plot_weather(base, metars, region):
     for rep in reports:
         if rep.get("lat") is None or rep.get("lon") is None:
             continue  # no position: unplottable, and never fatal
-        if polys and not _inside_polys(rep["lon"], rep["lat"], polys):
-            continue
         x, y = proj.xy(rep["lon"], rep["lat"])
         xi, yi = int(round(x)), int(round(y))
         if not proj.inside(xi, yi):
+            continue
+        # The outline test runs last on purpose: it ray-casts every
+        # ring, and a complex outline (Alaska) made a switch into it
+        # the slowest draw on the wall. The cheap canvas cull above
+        # rejects nearly every foreign station first.
+        if polys and not _inside_polys(rep["lon"], rep["lat"], polys):
             continue
         if any(abs(xi - px) < min_sep and abs(yi - py) < min_sep
                for px, py in placed):
