@@ -42,6 +42,15 @@ reference and the rollback.
 - **Zulu clock** (HH:MMZ, UTC) in the top-right corner.
 - **Night mode**: dims to a separate brightness during the owner's
   chosen night hours (default 22:00–06:00).
+- **Second module — the Pond**: an ambient water simulation for when
+  the wall isn't on weather duty. A two-buffer wave sim (half
+  resolution, 2×2 LEDs per cell) takes rain drops and occasional
+  pebbles; the height field is coloured by a chromostereoptic ramp —
+  troughs in receding blues, crests in advancing ambers and reds —
+  with slope shading over it, so the ripples read as real ridges and
+  troughs standing out of the wall. Rain rate, pebble interval and
+  relief strength are all in the admin; pick the module itself from
+  Display → "Show on the wall".
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -75,6 +84,7 @@ core/
 modules/
   base.py         module contract
   metar_map.py    the weather map module
+  pond.py         the pond module: wave sim + relief shading
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/

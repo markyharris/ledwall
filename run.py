@@ -20,11 +20,13 @@ from ledwall.admin.app import local_ip, serve
 from ledwall.core import config as config_mod
 from ledwall.core import splash, updater
 from ledwall.core.display import open_display
+from ledwall.core.geo import CANVAS_H, CANVAS_W
 from ledwall.core.regions import REGIONS
 from ledwall.core.state import AppState
 from ledwall.modules.metar_map import MetarMapModule
+from ledwall.modules.pond import PondModule
 
-MODULES = {"metar_map": MetarMapModule}
+MODULES = {"metar_map": MetarMapModule, "pond": PondModule}
 
 
 def update_checker(state):
@@ -40,7 +42,7 @@ def _run_fetch(module, state, flag):
     are logged, never raised into the loop."""
     try:
         module.refresh_data()
-        state.stations = len(module.metars)
+        state.stations = len(getattr(module, "metars", {}))
         state.last_fetch = time.time()
     except Exception:
         traceback.print_exc()
@@ -129,12 +131,14 @@ def apply_live_config(module, state, live, view, now):
     """
     want = desired_region(state, live, view, now)
     if live.get("module") != state.module_name or want != state.region:
-        new_module = MODULES[live["module"]]()
+        new_module = MODULES.get(live.get("module"),
+                                 MetarMapModule)()
         setup_cfg = dict(live)
         setup_cfg["region"] = want
         new_module.setup(setup_cfg)
         carried = getattr(module, "metars", None)
-        if carried and not set(new_module.station_ids) <= \
+        if carried and not set(getattr(new_module, "station_ids",
+                                       [])) <= \
                 set(getattr(module, "station_ids", [])):
             carried = None  # the old fetch never asked for these
         if carried:
@@ -153,14 +157,20 @@ def main():
     state.version = updater.current_version()
     display = open_display(cfg["brightness"])
 
-    module = MODULES[cfg["module"]]()
+    module = MODULES.get(cfg.get("module"), MetarMapModule)()
     module.setup(cfg)
     state.module_name = module.name
     state.region = cfg["region"]
 
-    display.show(splash.render_splash(module.base, local_ip()), "splash")
+    base = getattr(module, "base", None)
+    if base is None:  # a module with no map of its own (the pond)
+        base = Image.new("RGB", (CANVAS_W, CANVAS_H))
+    display.show(splash.render_splash(base, local_ip()), "splash")
 
-    threading.Thread(target=serve, args=(state, list(REGIONS.keys())),
+    threading.Thread(target=serve,
+                     args=(state, list(REGIONS.keys()),
+                           [(key, m.title) for key, m in
+                            MODULES.items()]),
                      daemon=True).start()
     threading.Thread(target=update_checker, args=(state,), daemon=True).start()
 

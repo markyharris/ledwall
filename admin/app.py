@@ -38,6 +38,7 @@ PAGE = """<!DOCTYPE html>
  section{border:1px solid #333;border-radius:8px;padding:12px 16px;margin:12px 0}
  section h2{margin:0 0 10px;font-size:16px}
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
+ .a-pond h2{color:#4dd8c8}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -64,6 +65,10 @@ PAGE = """<!DOCTYPE html>
 
 <form method="post" action="/save">
 <section class="a-display"><h2>Display</h2>
+ <label>Show on the wall
+  <select name="module">{% for key, title in modules %}
+   <option value="{{ key }}" {% if cfg.module == key %}selected{% endif %}>{{ title }}</option>{% endfor %}
+  </select></label>
  <label>Brightness <span class="val" id="bv">{{ cfg.brightness }}</span></label>
  <input type="range" name="brightness" min="0" max="100" value="{{ cfg.brightness }}"
         oninput="document.getElementById('bv').textContent=this.value">
@@ -117,6 +122,22 @@ PAGE = """<!DOCTYPE html>
         oninput="document.getElementById('rv').textContent=this.value">
  <div style="margin-top:10px"><img src="/legend.png" alt="Map legend"
       style="max-width:100%;border:1px solid #333;border-radius:6px"></div>
+</section>
+
+<section class="a-pond"><h2>Pond</h2>
+ <label>Rain
+  <select name="pond_drop_s">
+   <option value="0" {% if cfg.pond_drop_s == 0 %}selected{% endif %}>Off</option>
+   <option value="6" {% if cfg.pond_drop_s == 6 %}selected{% endif %}>Light (a drop every ~6 s)</option>
+   <option value="2.5" {% if cfg.pond_drop_s == 2.5 %}selected{% endif %}>Steady (every ~2.5 s)</option>
+   <option value="1" {% if cfg.pond_drop_s == 1 %}selected{% endif %}>Heavy (every second)</option>
+  </select></label>
+ <label>Pebble every
+  <input type="number" name="pond_pebble_s" min="0" max="600" step="5" value="{{ cfg.pond_pebble_s }}"> seconds (0 = no pebbles)</label>
+ <label>Relief strength <span class="val" id="pv">{{ cfg.pond_relief }}</span></label>
+ <input type="range" name="pond_relief" min="0" max="100" value="{{ cfg.pond_relief }}"
+        oninput="document.getElementById('pv').textContent=this.value">
+ <div class="dim">How hard the ridges and troughs push out of the wall - the colour-depth effect plus slope shading. Tune it to your eyes and your room.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
@@ -151,7 +172,9 @@ def local_ip():
         return "127.0.0.1"
 
 
-def create_app(state, regions):
+def create_app(state, regions, modules=None):
+    if modules is None:
+        modules = [("metar_map", "Weather map")]
     app = Flask(__name__)
     app.config["state"] = state
     app.config["regions"] = regions
@@ -162,9 +185,9 @@ def create_app(state, regions):
         last = ("never" if not state.last_fetch else
                 time.strftime("%H:%M:%S", time.localtime(state.last_fetch)))
         return render_template_string(
-            PAGE, cfg=cfg, state=state, regions=regions, last_fetch=last,
-            ip=local_ip(), port=5000, msg=request.args.get("msg", ""),
-            icon_kinds=ICON_KINDS)
+            PAGE, cfg=cfg, state=state, regions=regions, modules=modules,
+            last_fetch=last, ip=local_ip(), port=5000,
+            msg=request.args.get("msg", ""), icon_kinds=ICON_KINDS)
 
     @app.route("/api/status")
     def api_status():
@@ -215,6 +238,28 @@ def create_app(state, regions):
     @app.route("/save", methods=["POST"])
     def save():
         cfg = config_mod.load()
+        mod = request.form.get("module", cfg.get("module", "metar_map"))
+        if mod in dict(modules):
+            cfg["module"] = mod  # an unknown module name is ignored
+        try:
+            cfg["pond_drop_s"] = min(60.0, max(0.0, float(
+                request.form.get("pond_drop_s",
+                                 cfg.get("pond_drop_s", 2.5)))))
+        except ValueError:
+            pass  # keep the previous value
+        try:
+            pebble = int(request.form.get(
+                "pond_pebble_s", cfg.get("pond_pebble_s", 30)))
+        except ValueError:
+            pebble = cfg.get("pond_pebble_s", 30)
+        cfg["pond_pebble_s"] = 0 if pebble == 0 else min(
+            600, max(10, pebble))
+        try:
+            cfg["pond_relief"] = min(100, max(0, int(
+                request.form.get("pond_relief",
+                                 cfg.get("pond_relief", 70)))))
+        except ValueError:
+            pass
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))
@@ -281,5 +326,6 @@ def create_app(state, regions):
     return app
 
 
-def serve(state, regions, port=5000):
-    create_app(state, regions).run(host="0.0.0.0", port=port, threaded=True)
+def serve(state, regions, modules=None, port=5000):
+    create_app(state, regions, modules).run(
+        host="0.0.0.0", port=port, threaded=True)

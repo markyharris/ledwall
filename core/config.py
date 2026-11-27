@@ -32,6 +32,9 @@ DEFAULTS = {
     "night_brightness": 25,
     "night_start": "22:00",
     "night_end": "06:00",
+    "pond_drop_s": 2.5,
+    "pond_pebble_s": 30,
+    "pond_relief": 70,
 }
 
 

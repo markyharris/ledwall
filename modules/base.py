@@ -21,6 +21,10 @@ class Module:
     def setup(self, config):
         self.config = config
 
+    def refresh_data(self):
+        """Fetch fresh data, on the loop's background thread. Modules
+        with nothing to fetch (the pond) inherit this no-op."""
+
     def draw(self, ctx):
         raise NotImplementedError
 

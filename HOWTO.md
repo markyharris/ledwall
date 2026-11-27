@@ -98,6 +98,15 @@ git run as root has no key and GitHub answers "Permission denied
    exactly that. `refresh_data` backfills positions from the station
    directory, and `plot_weather` skips any report still missing
    them — one bad record can never take the wall down.
+10. **Modules are interchangeable, and the core must not assume the
+    map.** The pond (module 2) has no stations, no fetch and no base
+    map: `refresh_data` is a base-class no-op, the fetch worker
+    tolerates a module with no `metars`, the splash falls back to a
+    black backdrop, and a switch into any module tolerates it having
+    no `station_ids`. The pond simulates at half resolution (128×96,
+    each cell a 2×2 block) — a full-res pure-Python wave sim would
+    not hold 10 fps on the Pi — and schedules its drops on its own
+    tick count, never the wall clock.
 
 ## Troubleshooting
 
