@@ -147,6 +147,17 @@ git run as root has no key and GitHub answers "Permission denied
     skywatch_tally.json beside the config (git-ignored, best-
     effort writes), resets at local midnight, and prints at the
     box's bottom only when the content above leaves room.
+13. **Rotation is a map-only concern (fixed Nov 27).** The live-
+    config path rebuilt the active module whenever the rotation
+    advanced the region — including modules with no regions at
+    all. For Skywatch each rebuild wiped the fetched traffic, so
+    when a ~20-minute network stall stopped its fetches, the
+    rotation quietly replaced the stale-but-visible picture with
+    an empty "WAITING" scope, and planes were seen to melt away
+    in the switch crossfade. The fix gates the region machinery
+    to the weather map; other modules keep their state across
+    rotation ticks, and a future stall now degrades to a STALE
+    marker over the last picture instead of a blank scope.
 
 ## Troubleshooting
 

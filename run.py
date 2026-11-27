@@ -132,7 +132,14 @@ def apply_live_config(module, state, live, view, now):
     Otherwise the data is dropped and the loop fetches for the new
     view at once. Returns (module, switched).
     """
-    want = desired_region(state, live, view, now)
+    # Region rotation is a weather-map concern only. Other modules
+    # have no regions, and rebuilding one on a rotation tick wipes
+    # its live state - Skywatch lost its whole traffic picture to a
+    # rotation rebuild during a network stall (Nov 27): the stale
+    # picture it should have kept became an empty WAITING scope.
+    want = state.region
+    if live.get("module") == "metar_map":
+        want = desired_region(state, live, view, now)
     if live.get("module") != state.module_name or want != state.region:
         new_module = MODULES.get(live.get("module"),
                                  MetarMapModule)()
