@@ -70,7 +70,10 @@ PAGE = """<!DOCTYPE html>
  <input type="range" name="night_brightness" min="0" max="100" value="{{ cfg.night_brightness }}"
         oninput="document.getElementById('nv').textContent=this.value">
  <label><input type="checkbox" name="night_mode" {% if cfg.night_mode %}checked{% endif %}>
-        Night mode (dim 22:00-06:00)</label>
+        Night mode (dim to night brightness)</label>
+ <label>Night hours
+  <input type="text" name="night_start" value="{{ cfg.night_start }}" size="5"> to
+  <input type="text" name="night_end" value="{{ cfg.night_end }}" size="5"> (24-hour)</label>
  <label><input type="checkbox" name="show_clock" {% if cfg.show_clock %}checked{% endif %}>
         Zulu clock (UTC, top-right corner)</label>
 </section>
@@ -206,6 +209,11 @@ def create_app(state, regions):
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))
         cfg["night_mode"] = "night_mode" in request.form
+        for key in ("night_start", "night_end"):
+            parsed = config_mod.parse_hhmm(request.form.get(key, ""))
+            if parsed is not None:
+                cfg[key] = config_mod.format_hhmm(parsed)
+            # an unreadable time keeps the previous value, never junk
         cfg["show_clock"] = "show_clock" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
         cfg["dot_size"] = int(request.form.get("dot_size",

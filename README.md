@@ -25,7 +25,8 @@ reference and the rollback.
   space on the map at every refresh; it moves if weather fills its
   spot, and it never slides under the clock.
 - **Zulu clock** (HH:MMZ, UTC) in the top-right corner.
-- **Night mode**: dims to a separate brightness 22:00–06:00.
+- **Night mode**: dims to a separate brightness during the owner's
+  chosen night hours (default 22:00–06:00).
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -78,7 +79,8 @@ and icons is served at `/legend.png` and shown on the admin page.
 ## Configuration
 
 Defaults: region CONUS, 2×2 dots, icons on with fade animation, label
-and clock on, brightness 60, refresh 300 s, night mode off at 25.
+and clock on, brightness 60, refresh 300 s, night mode off at 25
+(night hours 22:00–06:00 when enabled).
 
 ## Standing build rules honoured
 

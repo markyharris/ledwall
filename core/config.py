@@ -27,7 +27,26 @@ DEFAULTS = {
     "refresh_s": 300,
     "night_mode": False,
     "night_brightness": 25,
+    "night_start": "22:00",
+    "night_end": "06:00",
 }
+
+
+def parse_hhmm(value):
+    """'22:00' (or '22') -> minutes since midnight, else None."""
+    try:
+        parts = str(value).strip().split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+        if 0 <= hour <= 23 and 0 <= minute <= 59:
+            return hour * 60 + minute
+    except (ValueError, IndexError):
+        pass
+    return None
+
+
+def format_hhmm(minutes):
+    return "%02d:%02d" % (minutes // 60, minutes % 60)
 
 
 def load():

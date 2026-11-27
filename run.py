@@ -31,13 +31,28 @@ def update_checker(state):
         time.sleep(3600)
 
 
-def effective_brightness(cfg):
-    """Admin brightness, with the night override when night mode is on
-    (22:00-06:00 local). Read fresh each tick so slider changes apply
-    live, without a restart."""
+def effective_brightness(cfg, now=None):
+    """Admin brightness, with the night override when night mode is on.
+    The night window is the owner's night_start/night_end (local time,
+    default 22:00-06:00; a window may wrap midnight or sit inside one
+    day, and start == end disables it). Read fresh each tick so slider
+    and window changes apply live, without a restart."""
     if cfg.get("night_mode"):
-        hour = time.localtime().tm_hour
-        if hour >= 22 or hour < 6:
+        t = time.localtime(now)
+        mins = t.tm_hour * 60 + t.tm_min
+        start = config_mod.parse_hhmm(cfg.get("night_start"))
+        end = config_mod.parse_hhmm(cfg.get("night_end"))
+        if start is None:
+            start = 22 * 60
+        if end is None:
+            end = 6 * 60
+        if start < end:
+            night = start <= mins < end
+        elif start > end:
+            night = mins >= start or mins < end
+        else:
+            night = False
+        if night:
             return cfg.get("night_brightness", 25)
     return cfg.get("brightness", 60)
 
