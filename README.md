@@ -15,8 +15,10 @@ reference and the rollback.
   wall (states are generated from the boundary data; a state view
   clips to its own outline and shows only its own airports). Pick 2+
   regions in the admin and the wall **rotates** through them, each
-  for a configurable number of seconds; region changes — manual or
-  rotating — apply live, no restart.
+  for a configurable number of seconds; every cycle leads with the
+  main Region view (the whole picture, for context) before the
+  picked zooms. Region changes — manual or rotating — apply live,
+  no restart.
 - **Weather icons** over the stations reporting them — thunderstorm,
   snow, rain/drizzle, fog/mist, hail — each kind individually
   toggleable, with a fade (4-second breathing cycle, hot peak), blink,

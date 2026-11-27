@@ -60,28 +60,35 @@ def effective_brightness(cfg, now=None):
 
 
 def desired_region(state, live, view, now):
-    """Which region belongs on the wall right now. With 2+ regions in
-    the rotation list, the wall cycles through them, each shown for
-    rotate_s seconds; otherwise the single Region setting rules.
-    `view` carries the rotation position between ticks."""
-    rotation = [r for r in live.get("rotate_regions") or []
-                if r in REGIONS]
-    if len(rotation) < 2:
+    """Which region belongs on the wall right now. With regions picked
+    for rotation, the cycle always leads with the single Region
+    setting - the whole-region overview, for context (Mark's ask) -
+    then the picked regions, each shown for rotate_s seconds. With
+    nothing picked, the single Region setting rules. `view` carries
+    the rotation position between ticks."""
+    picks = [r for r in live.get("rotate_regions") or []
+             if r in REGIONS]
+    if not picks:
         view["rotation"] = None
         return live["region"]
-    if view.get("rotation") != tuple(rotation):
-        view["rotation"] = tuple(rotation)
-        # A new list takes over from the current view when it can: if
-        # this region is in the list it keeps its full interval;
-        # otherwise the list starts at its first entry right away.
+    sequence = [live["region"]] + [r for r in picks
+                                    if r != live["region"]]
+    if len(sequence) < 2:
+        view["rotation"] = None
+        return live["region"]
+    if view.get("rotation") != tuple(sequence):
+        view["rotation"] = tuple(sequence)
+        # A new cycle takes over from the current view when it can: if
+        # this region is in the cycle it keeps its full interval;
+        # otherwise the cycle starts at the overview right away.
         view["deadline"] = now + max(10, int(live.get("rotate_s", 120))) \
-            if state.region in rotation else 0.0
-    if state.region in rotation and now < view["deadline"]:
+            if state.region in sequence else 0.0
+    if state.region in sequence and now < view["deadline"]:
         return state.region
-    idx = (rotation.index(state.region) + 1) % len(rotation) \
-        if state.region in rotation else 0
+    idx = (sequence.index(state.region) + 1) % len(sequence) \
+        if state.region in sequence else 0
     view["deadline"] = now + max(10, int(live.get("rotate_s", 120)))
-    return rotation[idx]
+    return sequence[idx]
 
 
 FADE_S = 0.9  # seconds for a region-switch crossfade

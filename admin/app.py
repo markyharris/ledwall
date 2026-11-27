@@ -86,13 +86,13 @@ PAGE = """<!DOCTYPE html>
   </select></label>
  <label>Home airport (flag)
   <input type="text" name="home_airport" value="{{ cfg.home_airport }}" size="6" maxlength="6"></label>
- <label>Rotate through regions (pick 2 or more)
+ <label>Rotate through regions (after the overview)
   <select name="rotate_regions" multiple size="6">{% for r in regions %}
    <option value="{{ r }}" {% if r in cfg.rotate_regions %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
  <label>Show each region for
   <input type="number" name="rotate_s" min="10" max="3600" step="10" value="{{ cfg.rotate_s }}"> seconds</label>
- <div class="dim">While 2 or more regions are picked, the wall rotates through them and the Region choice above is paused.</div>
+ <div class="dim">The wall shows the Region above first - the whole picture, for context - then cycles through the picked regions, each for the interval below, and back to the overview.</div>
  <label>Station dot size
   <select name="dot_size">
    <option value="1" {% if cfg.dot_size == 1 %}selected{% endif %}>1 LED</option>
