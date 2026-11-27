@@ -24,6 +24,7 @@ from ledwall.core.geo import CANVAS_H, CANVAS_W
 from ledwall.core.regions import REGIONS, station_counts
 from ledwall.core.state import AppState
 from ledwall.modules.aquarium import AquariumModule
+from ledwall.modules.base import Module
 from ledwall.modules.aurora import AuroraModule
 from ledwall.modules.daynight import DayNightModule
 from ledwall.modules.iss import IssModule
@@ -246,6 +247,50 @@ def _next_fetch_after_switch(view, module, cfg, now):
     return 0.0
 
 
+def _warm_up_rotation(cfg, view, fetching, state):
+    """Boot warm-up: while the first module displays, fetch the
+    other rotation modules' data in the background, in cycle
+    order starting with the next one up, and bank it in the
+    persistence store - so each module's first turn opens with
+    data in hand instead of a fetch (the one slow case the
+    persistence fix could not cover). Yields to the loop's own
+    fetches: the module on the wall always has the network
+    first. Computed modules (nothing to fetch) are skipped."""
+    try:
+        picks = [m for m in MODULES
+                 if m in (cfg.get("rotate_modules") or [])]
+        if not cfg.get("module_rotate_on") or len(picks) < 2:
+            return
+        cur = state.module_name
+        if cur in picks:
+            i = picks.index(cur)
+            picks = picks[i + 1:] + picks[:i]
+        for key in picks:
+            cls = MODULES.get(key)
+            if cls is None or \
+                    cls.refresh_data is Module.refresh_data:
+                continue
+            while fetching["busy"]:
+                time.sleep(0.5)
+            mod = cls()
+            mod.setup(dict(cfg))
+            try:
+                mod.refresh_data()
+            except Exception:
+                traceback.print_exc()
+                continue
+            entry = {a: getattr(mod, a)
+                     for a in getattr(mod, "PERSIST", ())
+                     if hasattr(mod, a)}
+            if getattr(mod, "metars", None):
+                entry["metars"] = mod.metars
+            if entry:
+                view.setdefault("saved", {})[key] = entry
+                view.setdefault("fetch_at", {})[key] = time.time()
+    except Exception:
+        traceback.print_exc()
+
+
 def main():
     cfg = config_mod.load()
     state = AppState()
@@ -301,6 +346,9 @@ def main():
     fade_start = 0.0
     fade_pending = None
     fetching = {"busy": False}
+    threading.Thread(target=_warm_up_rotation,
+                     args=(cfg, view, fetching, state),
+                     daemon=True).start()
     while True:
         try:
             cfg = config_mod.load()

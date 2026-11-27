@@ -386,6 +386,12 @@ git run as root has no key and GitHub answers "Permission denied
     cadence. The general rule: a switch of view is not a
     change of data - anything the owner can rotate back to
     within the hour should still be holding what it fetched.
+    A boot warm-up thread closes the one case persistence
+    cannot - the first lap after a restart: while the first
+    module displays, it fetches the rest of the cycle in
+    order and banks the results in the same store, yielding
+    whenever the loop's own fetch is in flight, so the
+    module on the wall always has the network first.
 
 ## Troubleshooting
 
