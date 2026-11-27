@@ -173,6 +173,16 @@ PAGE = """<!DOCTYPE html>
  <label>Centre longitude <input type="text" name="sw_lon" value="{{ cfg.sw_lon }}" size="10"></label>
  <label>Centre label <input type="text" name="sw_label" value="{{ cfg.sw_label }}" maxlength="6" size="8"></label>
  <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults centre on KFLG; the centre point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed, coloured by altitude from warm (low) to violet (high). The right-hand box follows the nearest aircraft: operator, full type, tail number, and - for scheduled flights, via the free adsbdb lookup - its departure and destination.</div>
+ <div style="margin-top:8px">Target colours - altitude (MSL):</div>
+ <div style="line-height:2">
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#FF6E28"></span> Below 8,000 ft</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#FFBE00"></span> 8,000-14,000</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#00DC78"></span> 14,000-20,000</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#00D2C8"></span> 20,000-28,000</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#50A0FF"></span> 28,000-36,000</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#BE78FF"></span> Above 36,000</span> &nbsp;
+  <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#787878"></span> Ground / no altitude</span>
+ </div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
