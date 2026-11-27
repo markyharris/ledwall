@@ -1,7 +1,7 @@
 """Admin web app - painter-clock v24 pattern (standing design rule):
 sliders with live readouts for 0-100 values, project icon as favicon
 and beside the header title, headed sections each with its own accent
-colour, and every action returning to the admin page itself (reboot via
+color, and every action returning to the admin page itself (reboot via
 an auto-refreshing interstitial back to admin).
 
 Also serves /api/status: the Project Finder fingerprint - a JSON with
