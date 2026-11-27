@@ -327,6 +327,19 @@ git run as root has no key and GitHub answers "Permission denied
     A module test that never touches the framework's contract
     proves the picture, not the module.
 
+25. **An address lookup needs a fallback and a fuse (Nov 27).**
+    The splash started showing 127.0.0.1: `local_ip()` asked
+    the kernel for the outbound source address and took any
+    exception - or a loopback answer, when the service started
+    before the network had a route - as final. Now it falls
+    back to enumerating the machine's interfaces (Linux ioctl,
+    wireless first), and the splash call waits up to 30 s for a
+    real address before giving up, so a boot race costs seconds
+    instead of printing a useless address. The admin page's own
+    address line calls the same lookup live, which makes it the
+    quick check for whether the lookup or the moment was at
+    fault.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

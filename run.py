@@ -230,7 +230,8 @@ def main():
     base = getattr(module, "base", None)
     if base is None:  # a module with no map of its own (the pond)
         base = Image.new("RGB", (CANVAS_W, CANVAS_H))
-    display.show(splash.render_splash(base, local_ip()), "splash")
+    display.show(splash.render_splash(base, local_ip(wait_s=30)),
+                 "splash")
 
     # Regions with no reporting airports of their own (Palestine,
     # Western Sahara...) are left off the admin's region pickers;

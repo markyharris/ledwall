@@ -279,15 +279,63 @@ REBOOT_PAGE = """<!DOCTYPE html><html><head><meta charset="utf-8">
 </body></html>"""
 
 
-def local_ip():
+def _iface_ips():
+    """Non-loopback IPv4 addresses on this machine's interfaces,
+    wireless first, then wired. The stdlib has no portable way
+    to list interface addresses, so this uses the Linux ioctl -
+    the wall is a Pi, and on any other platform it simply finds
+    nothing and the caller falls back."""
+    import fcntl
+    import struct
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
+        names = [name for _, name in socket.if_nameindex()]
     except Exception:
-        return "127.0.0.1"
+        return []
+    names.sort(key=lambda n: (not n.startswith(("wlan", "wl")),
+                              not n.startswith(("eth", "en"))))
+    ips = []
+    for name in names:
+        if name == "lo":
+            continue
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            packed = struct.pack("256s", name.encode()[:15])
+            addr = fcntl.ioctl(s.fileno(), 0x8915, packed)[20:24]
+            s.close()
+            ip = socket.inet_ntoa(addr)
+            if not ip.startswith("127.") and ip != "0.0.0.0":
+                ips.append(ip)
+        except Exception:
+            continue
+    return ips
+
+
+def local_ip(wait_s=0):
+    """The address the admin page answers on. First choice is
+    the source address the kernel picks for an outbound packet
+    (the interface with the default route). If that comes back
+    loopback - the network wasn't up yet when the service
+    started, the failure that put 127.0.0.1 on the splash on
+    Nov 27 - fall back to the interface list, and if wait_s is
+    given, keep trying for that long before giving up: a boot
+    race should cost seconds, not the address."""
+    deadline = time.time() + wait_s
+    while True:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+            if not ip.startswith("127.") and ip != "0.0.0.0":
+                return ip
+        except Exception:
+            pass
+        ips = _iface_ips()
+        if ips:
+            return ips[0]
+        if time.time() >= deadline:
+            return "127.0.0.1"
+        time.sleep(2)
 
 
 def create_app(state, regions, modules=None):
