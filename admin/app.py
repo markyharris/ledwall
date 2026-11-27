@@ -85,6 +85,7 @@ PAGE = """<!DOCTYPE html>
   <input type="text" name="night_end" value="{{ cfg.night_end }}" size="5"> (24-hour)</label>
  <label><input type="checkbox" name="show_clock" {% if cfg.show_clock %}checked{% endif %}>
         Zulu clock (UTC, top-right corner)</label>
+ <div><button type="submit">Save settings</button></div>
 </section>
 
 <section class="a-rotate"><h2>Module Rotation</h2>
