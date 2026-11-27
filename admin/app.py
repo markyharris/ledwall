@@ -71,6 +71,8 @@ PAGE = """<!DOCTYPE html>
         oninput="document.getElementById('nv').textContent=this.value">
  <label><input type="checkbox" name="night_mode" {% if cfg.night_mode %}checked{% endif %}>
         Night mode (dim 22:00-06:00)</label>
+ <label><input type="checkbox" name="show_clock" {% if cfg.show_clock %}checked{% endif %}>
+        Zulu clock (UTC, top-right corner)</label>
 </section>
 
 <section class="a-module"><h2>Weather Map</h2>
@@ -204,6 +206,7 @@ def create_app(state, regions):
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))
         cfg["night_mode"] = "night_mode" in request.form
+        cfg["show_clock"] = "show_clock" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
         cfg["dot_size"] = int(request.form.get("dot_size",
                                                cfg.get("dot_size", 2)))

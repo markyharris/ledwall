@@ -57,10 +57,12 @@ class MetarMapModule(Module):
             self._dot_frame, self.dot_count, self._icon_stations = \
                 render.plot_weather(self.base, self.metars, region)
             if self.config.get("show_label", True):
+                reserved = render.zulu_clock_box(self.base.width) \
+                    if self.config.get("show_clock", True) else None
                 render.draw_region_label(
                     self._dot_frame, self.base,
                     self.region.get("label") or self.region["name"],
-                    self._icon_stations)
+                    self._icon_stations, reserved=reserved)
             self._dirty = False
             # A bolt that was not there at the previous refresh earns
             # the entrance flash; one that merely persists does not.
@@ -99,6 +101,8 @@ class MetarMapModule(Module):
                     del self._flash[pos]
             render.draw_icons(frame, stations, level=level,
                               bolt_on=bolt_on, flash=flash)
+        if self.config.get("show_clock", True):
+            render.draw_zulu_clock(frame)
         return frame
 
     def admin_fields(self):

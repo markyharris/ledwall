@@ -7,6 +7,7 @@ panels as one image.
 """
 import json
 import os
+import time
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
@@ -61,6 +62,9 @@ def build_base(region):
     with open(os.path.join(DATA_DIR, region["boundaries"])) as f:
         geojson = json.load(f)
     for feature in geojson["features"]:
+        if region.get("feature") and \
+                feature["properties"].get("name") != region["feature"]:
+            continue  # a state view draws only its own outline
         for ring in _rings(feature["geometry"]):
             pts = [proj.xy(lon, lat) for lon, lat in ring]
             if len(pts) >= 3:
@@ -84,6 +88,9 @@ def render_icon(region, width=96, height=72):
     with open(os.path.join(DATA_DIR, region["boundaries"])) as f:
         geojson = json.load(f)
     for feature in geojson["features"]:
+        if region.get("feature") and \
+                feature["properties"].get("name") != region["feature"]:
+            continue
         for ring in _rings(feature["geometry"]):
             pts = [proj.xy(lon, lat) for lon, lat in ring]
             if len(pts) >= 3:
@@ -262,13 +269,15 @@ def render_legend():
     return img
 
 
-def draw_region_label(img, base, text, icon_stations=()):
+def draw_region_label(img, base, text, icon_stations=(), reserved=None):
     """Draw the region/state/country name into the emptiest space on
     the map (Mark's ask): candidate spots around the edges are scored
     by how much weather sits in them - pixels differing from the base
     map, plus a penalty per icon - and the quietest spot wins. The
     choice is remade at every data refresh, so the label moves if its
-    spot fills with weather. Returns the (x, y) origin used."""
+    spot fills with weather. `reserved` is an (x0, y0, x1, y1) box the
+    label must not sit under (the Zulu clock's corner). Returns the
+    (x, y) origin used."""
     font = _legend_font(_FONT_BOLD, 12)
     probe = ImageDraw.Draw(img)
     tw = probe.textlength(text, font=font)
@@ -294,6 +303,9 @@ def draw_region_label(img, base, text, icon_stations=()):
         for ix, iy, _ in icon_stations:
             if x - 3 <= ix <= x + w + 3 and y - 3 <= iy <= y + h + 3:
                 s += 60
+        if reserved and not (x + w < reserved[0] or x > reserved[2]
+                             or y + h < reserved[1] or y > reserved[3]):
+            s += 100000  # never slide under the Zulu clock
         return s
 
     x, y = min(candidates, key=lambda p: score(*p))
@@ -301,6 +313,73 @@ def draw_region_label(img, base, text, icon_stations=()):
     d.text((x + 6, y + 4), text, font=font, fill=(0, 0, 0))
     d.text((x + 5, y + 3), text, font=font, fill=(128, 148, 172))
     return (x, y)
+
+
+def zulu_clock_box(width):
+    """The (x0, y0, x1, y1) box the Zulu clock occupies, top-right."""
+    font = _legend_font(_FONT_BOLD, 13)
+    probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
+    w = int(probe.textlength("00:00Z", font=font)) + 4
+    return (width - w - 5, 5, width - 5, 22)
+
+
+def draw_zulu_clock(img, now=None):
+    """HH:MMZ in the top-right corner, redrawn every tick. `now` is a
+    Unix timestamp (defaults to the current time) so tests can pin it."""
+    font = _legend_font(_FONT_BOLD, 13)
+    text = time.strftime("%H:%MZ", time.gmtime(now))
+    d = ImageDraw.Draw(img)
+    x = img.width - int(d.textlength(text, font=font)) - 7
+    d.text((x + 1, 6), text, font=font, fill=(0, 0, 0))
+    d.text((x, 5), text, font=font, fill=(205, 214, 224))
+    return img
+
+
+_FEATURE_POLYS = {}
+
+
+def _feature_polys(region):
+    """Outer rings of the region's own feature (a state), used to clip
+    station plots to the outline on zoomed views - a state map shows
+    its own airports, not the neighbours that share its bounding box.
+    (The CONUS view has no single feature and stays unclipped.)"""
+    name = region.get("feature")
+    if not name:
+        return None
+    if name in _FEATURE_POLYS:
+        return _FEATURE_POLYS[name]
+    polys = []
+    try:
+        with open(os.path.join(DATA_DIR, region["boundaries"])) as f:
+            geojson = json.load(f)
+        for feature in geojson["features"]:
+            if feature["properties"].get("name") != name:
+                continue
+            g = feature["geometry"]
+            if g["type"] == "Polygon":
+                polys.append(g["coordinates"][0])
+            elif g["type"] == "MultiPolygon":
+                polys.extend(p[0] for p in g["coordinates"])
+    except Exception:
+        polys = []
+    _FEATURE_POLYS[name] = polys or None
+    return _FEATURE_POLYS[name]
+
+
+def _inside_polys(lon, lat, polys):
+    for ring in polys:
+        ins = False
+        j = len(ring) - 1
+        for i in range(len(ring)):
+            xi, yi = ring[i]
+            xj, yj = ring[j]
+            if ((yi > lat) != (yj > lat)) and \
+                    (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi):
+                ins = not ins
+            j = i
+        if ins:
+            return True
+    return False
 
 
 def plot_weather(base, metars, region):
@@ -317,9 +396,12 @@ def plot_weather(base, metars, region):
     reports = list(metars.values())
     # Reports with no flight category from the API plot as NONE (grey).
     reports.sort(key=lambda r: PRIORITY[r.get("fltCat") or "NONE"])
+    polys = _feature_polys(region)
     placed = []
     icons = []
     for rep in reports:
+        if polys and not _inside_polys(rep["lon"], rep["lat"], polys):
+            continue
         x, y = proj.xy(rep["lon"], rep["lat"])
         xi, yi = int(round(x)), int(round(y))
         if not proj.inside(xi, yi):

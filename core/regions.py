@@ -3,7 +3,60 @@
 Each region carries its bounding box, the boundary dataset used to draw
 its base map, and a density rule (minimum pixel separation between
 station dots) tuned to how crowded that part of the world is.
+
+US states are generated from the boundaries file itself: each state
+becomes a zoomed region showing only its own outline (the "feature"
+key filters the base-map draw). The national station fetch is shared;
+the projection simply plots only what falls inside the state.
 """
+import json
+import os
+
+_DATA = os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "data")
+
+
+def _geom_bbox(geometry):
+    lon_min = lat_min = float("inf")
+    lon_max = lat_max = float("-inf")
+    stack = [geometry["coordinates"]]
+    while stack:
+        node = stack.pop()
+        if isinstance(node[0], (int, float)):
+            lon, lat = node
+            lon_min = min(lon_min, lon)
+            lon_max = max(lon_max, lon)
+            lat_min = min(lat_min, lat)
+            lat_max = max(lat_max, lat)
+        else:
+            stack.extend(node)
+    return lon_min, lat_min, lon_max, lat_max
+
+
+def _state_regions():
+    try:
+        with open(os.path.join(_DATA, "us-states.json")) as f:
+            geojson = json.load(f)
+    except Exception:
+        return {}
+    out = {}
+    for feature in geojson["features"]:
+        name = feature["properties"].get("name")
+        if not name:
+            continue
+        key = name.upper().replace(" ", "_")
+        lon0, lat0, lon1, lat1 = _geom_bbox(feature["geometry"])
+        out[key] = {
+            "title": name,
+            "label": key.replace("_", " "),
+            "bbox": (lon0 - 0.6, max(-85.0, lat0 - 0.45),
+                     lon1 + 0.6, min(85.0, lat1 + 0.45)),
+            "boundaries": "us-states.json",
+            "feature": name,
+            "min_sep": 2,
+        }
+    return out
+
 
 REGIONS = {
     "CONUS": {
@@ -13,10 +66,9 @@ REGIONS = {
         "boundaries": "us-states.json",
         "min_sep": 3,
     },
-    # Phase 3 presets (boundary data lands with the world build):
-    # "ALASKA":  {...}, "HAWAII": {...}, "EUROPE": {...},
-    # "WORLD":   {...}, "JAPAN":  {...}, "AUSTRALIA": {...},
+    # World presets land with the phase 3 build (EUROPE, WORLD, ...).
 }
+REGIONS.update(_state_regions())
 
 
 def get_region(name):
