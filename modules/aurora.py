@@ -72,7 +72,10 @@ class AuroraModule(Module):
     name = "aurora"
     title = "Aurora & Space Weather"
     tick_s = 10
-    fetch_s = 900
+
+    @property
+    def fetch_s(self):
+        return 900 if self.kp is not None else 60
 
     def setup(self, config):
         self.cfg = config

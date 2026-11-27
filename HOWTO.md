@@ -258,6 +258,18 @@ git run as root has no key and GitHub answers "Permission denied
     non-null reading; and the OVATION aurora grid is lon
     0..360, so wrap it before projecting.
 
+20. **A module with no data must retry like it means it
+    (Nov 27).** The ISS module's first fetch on the wall either
+    failed or queued behind a weather fetch on a slow line, and
+    because its fetch interval is six hours, one miss stranded
+    it on "WAITING FOR ELEMENTS" with the next attempt hours
+    away. The fetch interval is now a property on the data-fed
+    modules: brisk (45-60 s) until the first data lands, then
+    the normal cadence. The ISS fetch also falls back from
+    CelesTrak to AMSAT's daily element file. Rule of thumb for
+    new modules: the empty state is the one state that must
+    never be patient.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

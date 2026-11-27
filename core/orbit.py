@@ -46,11 +46,30 @@ def parse_tle(text):
     }
 
 
-def fetch_tle(url=TLE_URL, timeout=25):
+AMSAT_URL = "https://www.amsat.org/tle/current/nasabare.txt"
+
+
+def _get(url, timeout):
     req = urllib.request.Request(url, headers={
         "User-Agent": "ledwall (personal LED display)"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return parse_tle(resp.read().decode("ascii", "replace"))
+        return resp.read().decode("ascii", "replace")
+
+
+def fetch_tle(url=TLE_URL, timeout=25):
+    """The ISS element set, from CelesTrak with AMSAT's daily
+    file as a fallback - the two occasionally have bad days
+    independently, and a wall with no elements is just a sign
+    saying so."""
+    try:
+        return parse_tle(_get(url, timeout))
+    except Exception:
+        text = _get(AMSAT_URL, timeout)
+        lines = text.splitlines()
+        for i, ln in enumerate(lines):
+            if ln.startswith("1 25544") and i + 1 < len(lines):
+                return parse_tle(ln + "\n" + lines[i + 1])
+        raise ValueError("ISS elements not found at AMSAT")
 
 
 def propagate(tle, t):

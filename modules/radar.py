@@ -66,7 +66,10 @@ class RadarModule(Module):
     name = "radar"
     title = "Live Radar"
     tick_s = 1
-    fetch_s = 300
+
+    @property
+    def fetch_s(self):
+        return 300 if self.frames else 60
 
     def setup(self, config):
         self.cfg = config

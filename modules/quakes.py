@@ -57,7 +57,12 @@ class QuakesModule(Module):
     name = "quakes"
     title = "Earthquake Map"
     tick_s = 10
-    fetch_s = 900
+
+    @property
+    def fetch_s(self):
+        # 15 minutes once data is flowing; retry briskly until
+        # the first feed lands (see the ISS module's note).
+        return 900 if self.events else 60
 
     def setup(self, config):
         self.cfg = config

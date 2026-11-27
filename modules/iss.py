@@ -42,7 +42,15 @@ class IssModule(Module):
     name = "iss"
     title = "ISS Tracker"
     tick_s = 5
-    fetch_s = 6 * 3600  # element sets update a few times a day
+
+    @property
+    def fetch_s(self):
+        # Element sets update a few times a day - but until the
+        # first set lands the module has nothing to show, so poll
+        # briskly rather than leaving a "waiting" sign up for
+        # hours after one failed fetch (first-run find, Nov 27:
+        # a stalled first fetch on a slow line stranded it).
+        return 6 * 3600 if self.tle is not None else 45
 
     def setup(self, config):
         self.cfg = config
