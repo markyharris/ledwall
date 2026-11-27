@@ -91,11 +91,105 @@ def render_icon(region, width=96, height=72):
     return img
 
 
+# --- Weather icons (phase 2) -------------------------------------------
+# Tiny pixel glyphs overlaid on stations reporting significant weather,
+# parsed from each METAR's wxString. One icon per station: the most
+# significant phenomenon wins (thunder > hail > snow > rain > fog).
+GLYPHS = {
+    "TS": ["....#",
+           "...#.",
+           "..#..",
+           ".####",
+           "...#.",
+           "..#..",
+           ".#..."],
+    "SN": ["#..#..#",
+           ".#.#.#.",
+           "..###..",
+           ".#####.",
+           "..###..",
+           ".#.#.#.",
+           "#..#..#"],
+    "RA": ["#..#..#",
+           "#..#..#",
+           ".......",
+           ".#..#..",
+           "..#..#.",
+           "...#..#"],
+    "FG": ["#####..",
+           "..#####",
+           "#####..",
+           "..#####"],
+    "GR": [".#...#.",
+           "..#.#..",
+           "#..#..#",
+           "..#.#..",
+           ".#...#."],
+}
+ICON_COLORS = {
+    "TS": (255, 220, 0),
+    "SN": (190, 220, 255),
+    "RA": (150, 190, 255),
+    "FG": (235, 235, 235),
+    "GR": (235, 235, 235),
+}
+# Icons get their own density thinning, separate from the dots: a 7px
+# glyph on every reporting station merges into a solid smear in a rain
+# shield and buries the category dots (first live render, Nov 2026).
+# Most significant phenomenon wins the space.
+ICON_PRIORITY = {"TS": 0, "GR": 1, "SN": 2, "RA": 3, "FG": 4}
+ICON_MIN_SEP = 9
+
+
+def wx_kind(wx):
+    """Most significant icon kind in a METAR wxString, or None."""
+    if not wx:
+        return None
+    codes = set()
+    for group in wx.split():
+        g = group
+        while g[:1] in ("-", "+"):
+            g = g[1:]
+        if g.startswith("VC"):
+            g = g[2:]
+        for i in range(0, len(g) - 1, 2):
+            codes.add(g[i:i + 2])
+    if "TS" in codes:
+        return "TS"
+    if "GR" in codes or "GS" in codes:
+        return "GR"
+    if "SN" in codes or "PL" in codes or "SG" in codes:
+        return "SN"
+    if "RA" in codes or "DZ" in codes:
+        return "RA"
+    if "FG" in codes or "BR" in codes:
+        return "FG"
+    return None
+
+
+def draw_icons(img, stations, phase=0):
+    """Draw icon glyphs centred on each (x, y, kind). Thunderstorm
+    bolts blink: shown on even phases, hidden on odd ones. Bolts are
+    drawn last so they sit on top of any neighbouring icon."""
+    d = ImageDraw.Draw(img)
+    for x, y, kind in sorted(stations, key=lambda s: s[2] == "TS"):
+        if kind == "TS" and phase % 2 == 1:
+            continue
+        glyph = GLYPHS[kind]
+        color = ICON_COLORS[kind]
+        ox, oy = x - len(glyph[0]) // 2, y - len(glyph) // 2
+        for r, row in enumerate(glyph):
+            for c, ch in enumerate(row):
+                if ch == "#":
+                    d.point((ox + c, oy + r), fill=color)
+    return img
+
+
 def plot_weather(base, metars, region):
     """Composite flight-category station dots onto a base map image.
     Stations are density-thinned: worse weather is placed first and a
     station is skipped if it falls within min_sep pixels of one already
-    placed."""
+    placed. Returns (image, dots placed, icon stations)."""
     proj = Projection(region["bbox"])
     img = base.copy()
     d = ImageDraw.Draw(img)
@@ -106,6 +200,7 @@ def plot_weather(base, metars, region):
     # Reports with no flight category from the API plot as NONE (grey).
     reports.sort(key=lambda r: PRIORITY[r.get("fltCat") or "NONE"])
     placed = []
+    icons = []
     for rep in reports:
         x, y = proj.xy(rep["lon"], rep["lat"])
         xi, yi = int(round(x)), int(round(y))
@@ -118,4 +213,14 @@ def plot_weather(base, metars, region):
         cat = rep.get("fltCat") or "NONE"
         d.rectangle([xi - half, yi - half, xi - half + dot - 1,
                      yi - half + dot - 1], fill=CATEGORY_COLORS[cat])
-    return img, len(placed)
+        kind = wx_kind(rep.get("wxString"))
+        if kind:
+            icons.append((xi, yi, kind))
+    icons.sort(key=lambda s: ICON_PRIORITY[s[2]])
+    kept = []
+    for x, y, kind in icons:
+        if any(abs(x - kx) < ICON_MIN_SEP and abs(y - ky) < ICON_MIN_SEP
+               for kx, ky, _ in kept):
+            continue
+        kept.append((x, y, kind))
+    return img, len(placed), kept

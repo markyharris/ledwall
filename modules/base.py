@@ -15,6 +15,8 @@ class Module:
     name = "base"
     title = "Base module"
     refresh_s = 300
+    tick_s = 0  # >0: draw() is called every tick_s seconds with an
+    # incrementing tick counter (animation); 0 = draw only on refresh
 
     def setup(self, config):
         self.config = config

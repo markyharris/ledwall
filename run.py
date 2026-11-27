@@ -31,11 +31,22 @@ def update_checker(state):
         time.sleep(3600)
 
 
+def effective_brightness(cfg):
+    """Admin brightness, with the night override when night mode is on
+    (22:00-06:00 local). Read fresh each tick so slider changes apply
+    live, without a restart."""
+    if cfg.get("night_mode"):
+        hour = time.localtime().tm_hour
+        if hour >= 22 or hour < 6:
+            return cfg.get("night_brightness", 25)
+    return cfg.get("brightness", 60)
+
+
 def main():
     cfg = config_mod.load()
     state = AppState()
     state.version = updater.current_version()
-    display = open_display()
+    display = open_display(cfg["brightness"])
 
     module = MODULES[cfg["module"]]()
     module.setup(cfg)
@@ -48,16 +59,22 @@ def main():
                      daemon=True).start()
     threading.Thread(target=update_checker, args=(state,), daemon=True).start()
 
+    next_fetch = 0.0
+    tick = 0
     while True:
         try:
-            module.refresh_data()
-            frame = module.draw(None)
+            if time.time() >= next_fetch:
+                module.refresh_data()
+                state.stations = len(module.metars)
+                state.last_fetch = time.time()
+                next_fetch = time.time() + cfg["refresh_s"]
+            display.set_brightness(
+                effective_brightness(config_mod.load()))
+            frame = module.draw(tick)
             state.frame = frame
-            state.stations = len(module.metars)
             state.dots = module.dot_count
-            state.last_fetch = time.time()
             display.show(frame, "weather")
-            delay = cfg["refresh_s"]
+            delay = getattr(module, "tick_s", 0) or cfg["refresh_s"]
         except Exception:
             # A bad cycle must never wedge or kill the wall (the v1
             # failure Mark worked around with a nightly reboot): keep
@@ -65,6 +82,7 @@ def main():
             # retry soon instead of waiting out the full interval.
             traceback.print_exc()
             delay = 30
+        tick += 1
         time.sleep(delay)
 
 

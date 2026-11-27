@@ -27,6 +27,9 @@ class FileDisplay:
         big.save(os.path.join(PREVIEW_DIR, name + "_3x.png"))
         return name
 
+    def set_brightness(self, pct):
+        pass  # previews stay full-bright so they remain legible
+
 
 class MatrixDisplay:
     """Pi display: Adafruit RGB Matrix HAT + RTC driving 4x3 64x64 panels."""
@@ -57,9 +60,15 @@ class MatrixDisplay:
     def show(self, image, name=None):
         self.matrix.SetImage(image)
 
+    def set_brightness(self, pct):
+        try:
+            self.matrix.brightness = int(pct)
+        except Exception:
+            pass
 
-def open_display():
+
+def open_display(brightness=60):
     try:
-        return MatrixDisplay()
+        return MatrixDisplay(brightness=brightness)
     except Exception:
         return FileDisplay()
