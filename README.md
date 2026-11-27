@@ -60,6 +60,18 @@ reference and the rollback.
   blues farthest). Swaying surface rays, caustic shimmer, rising
   bubbles and a turtle that crosses every so often. Fish density,
   turtle interval and the rays are all in the admin.
+- **Fourth module — Overhead Aircraft**: a radar scope of the real
+  sky, from the free community ADS-B feed (adsb.lol) — no antenna
+  and no account; the area is already covered by volunteers'
+  receivers. Aircraft within the chosen range (25/50/100 nm of the
+  centre point, KFLG by default) plot on range rings coloured by
+  altitude band — amber under 9,000 ft, green to 20,000, blue
+  above — with callsign labels for the nearest few and a detail
+  line for the closest one. The feed polls every 15–60 s (its own
+  cadence, independent of the weather refresh) and each aircraft is
+  dead-reckoned along its reported track and speed between polls,
+  so the dots glide. Callsign, type, altitude and speed come from
+  the feed; origin/destination is not in the free data.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -95,6 +107,7 @@ modules/
   metar_map.py    the weather map module
   pond.py         the pond module: wave sim + relief shading
   aquarium.py     the aquarium module: layered depth-plane scene
+  skywatch.py     the overhead-aircraft module: ADS-B scope
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/

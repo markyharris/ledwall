@@ -38,6 +38,11 @@ DEFAULTS = {
     "aq_fish": "lively",
     "aq_turtle_s": 90,
     "aq_rays": True,
+    "sw_range_nm": 50,
+    "sw_refresh_s": 30,
+    "sw_lat": 35.1404,
+    "sw_lon": -111.6694,
+    "sw_label": "KFLG",
 }
 
 

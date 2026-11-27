@@ -117,6 +117,18 @@ git run as root has no key and GitHub answers "Permission denied
     cool far — so the chromostereopsis works with the geometry
     instead of against it. Sprites are pre-rendered per plane at
     setup; a frame costs ~1 ms of compositing, leaving the Pi idle.
+12. **A module can poll faster than the weather (module 4,
+    Skywatch).** The loop's fetch interval is the config's
+    `refresh_s` — right for METARs, useless for aircraft. A module
+    that sets `fetch_s` (seconds) overrides it for its own fetches;
+    Skywatch syncs it from its own setting (15/30/60 s) and
+    dead-reckons each aircraft along its reported track/speed
+    between polls, capped at 90 s, so 30-second polls still glide.
+    Its data is the free adsb.lol community feed — no key, no
+    antenna — and a failed poll keeps the last picture rather than
+    raising. The scope's centre defaults to KFLG's public
+    coordinates on purpose: precise home coordinates belong in the
+    Pi's git-ignored config.json, never in this public repo.
 
 ## Troubleshooting
 

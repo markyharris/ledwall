@@ -15,6 +15,8 @@ class Module:
     name = "base"
     title = "Base module"
     refresh_s = 300
+    fetch_s = None  # per-module fetch cadence; None = the config's
+    #                 refresh_s (the weather map's setting) rules
     tick_s = 0  # >0: draw() is called every tick_s seconds with an
     # incrementing tick counter (animation); 0 = draw only on refresh
 

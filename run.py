@@ -26,9 +26,10 @@ from ledwall.core.state import AppState
 from ledwall.modules.aquarium import AquariumModule
 from ledwall.modules.metar_map import MetarMapModule
 from ledwall.modules.pond import PondModule
+from ledwall.modules.skywatch import SkywatchModule
 
 MODULES = {"metar_map": MetarMapModule, "pond": PondModule,
-           "aquarium": AquariumModule}
+           "aquarium": AquariumModule, "skywatch": SkywatchModule}
 
 
 def update_checker(state):
@@ -198,7 +199,12 @@ def main():
                 threading.Thread(target=_run_fetch,
                                  args=(module, state, fetching),
                                  daemon=True).start()
-                next_fetch = time.time() + cfg["refresh_s"]
+                # A module with its own data cadence (Skywatch polls
+                # its feed every few seconds) sets fetch_s; the rest
+                # follow the config's refresh interval.
+                next_fetch = time.time() + (
+                    getattr(module, "fetch_s", None)
+                    or cfg["refresh_s"])
             display.set_brightness(effective_brightness(cfg))
             frame = module.draw(tick)
             if fade_pending is not None:

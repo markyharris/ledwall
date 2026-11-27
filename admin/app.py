@@ -39,6 +39,7 @@ PAGE = """<!DOCTYPE html>
  section h2{margin:0 0 10px;font-size:16px}
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
  .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
+ .a-sky h2{color:#ff8a5c}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -152,6 +153,26 @@ PAGE = """<!DOCTYPE html>
   <input type="number" name="aq_turtle_s" min="0" max="600" step="10" value="{{ cfg.aq_turtle_s }}"> seconds (0 = never)</label>
  <label class="chk"><input type="checkbox" name="aq_rays" {% if cfg.aq_rays %}checked{% endif %}> Surface light rays</label>
  <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the same colour-depth effect as the pond, put to work.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+
+<section class="a-sky"><h2>Overhead Aircraft</h2>
+ <label>Scope range
+  <select name="sw_range_nm">
+   <option value="25" {% if cfg.sw_range_nm == 25 %}selected{% endif %}>25 nm (local traffic)</option>
+   <option value="50" {% if cfg.sw_range_nm == 50 %}selected{% endif %}>50 nm</option>
+   <option value="100" {% if cfg.sw_range_nm == 100 %}selected{% endif %}>100 nm (the wide sky)</option>
+  </select></label>
+ <label>Feed refresh
+  <select name="sw_refresh_s">
+   <option value="15" {% if cfg.sw_refresh_s == 15 %}selected{% endif %}>Every 15 seconds</option>
+   <option value="30" {% if cfg.sw_refresh_s == 30 %}selected{% endif %}>Every 30 seconds</option>
+   <option value="60" {% if cfg.sw_refresh_s == 60 %}selected{% endif %}>Every minute</option>
+  </select></label>
+ <label>Centre latitude <input type="text" name="sw_lat" value="{{ cfg.sw_lat }}" size="10"></label>
+ <label>Centre longitude <input type="text" name="sw_lon" value="{{ cfg.sw_lon }}" size="10"></label>
+ <label>Centre label <input type="text" name="sw_label" value="{{ cfg.sw_label }}" maxlength="6" size="8"></label>
+ <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults centre on KFLG; the centre point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed. Colours: amber under 9,000 ft, green to 20,000, blue above.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
@@ -285,6 +306,26 @@ def create_app(state, regions, modules=None):
         cfg["aq_turtle_s"] = 0 if turtle == 0 else min(
             600, max(20, turtle))
         cfg["aq_rays"] = "aq_rays" in request.form
+        for key, allowed in (("sw_range_nm", (25, 50, 100)),
+                             ("sw_refresh_s", (15, 30, 60))):
+            try:
+                v = int(request.form.get(key, cfg.get(key)))
+                if v in allowed:
+                    cfg[key] = v  # off-list values are ignored
+            except (TypeError, ValueError):
+                pass
+        for key, lo, hi in (("sw_lat", -90.0, 90.0),
+                            ("sw_lon", -180.0, 180.0)):
+            try:
+                v = float(request.form.get(key, cfg.get(key)))
+                if lo <= v <= hi:
+                    cfg[key] = v
+            except (TypeError, ValueError):
+                pass  # keep the previous coordinate
+        sw_label = "".join(ch for ch in request.form.get(
+            "sw_label", cfg.get("sw_label", "KFLG")) if ch.isalnum())
+        if sw_label:
+            cfg["sw_label"] = sw_label[:6].upper()
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))
