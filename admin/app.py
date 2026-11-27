@@ -224,7 +224,7 @@ def create_app(state, regions):
             config_mod.save(cfg)
         except OSError:
             return redirect(url_for("index", msg="Could not write config.json (read-only location) - settings not saved."))
-        return redirect(url_for("index", msg="Settings saved - restart the map to apply changes."))
+        return redirect(url_for("index", msg="Settings saved - changes apply live, no restart needed."))
 
     @app.route("/update/check", methods=["POST"])
     def update_check():
