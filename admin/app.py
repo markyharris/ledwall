@@ -172,7 +172,7 @@ PAGE = """<!DOCTYPE html>
  <label>Centre latitude <input type="text" name="sw_lat" value="{{ cfg.sw_lat }}" size="10"></label>
  <label>Centre longitude <input type="text" name="sw_lon" value="{{ cfg.sw_lon }}" size="10"></label>
  <label>Centre label <input type="text" name="sw_label" value="{{ cfg.sw_label }}" maxlength="6" size="8"></label>
- <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults centre on KFLG; the centre point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed. Colours: amber under 9,000 ft, green to 20,000, blue above.</div>
+ <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults centre on KFLG; the centre point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed, coloured by altitude from warm (low) to violet (high). The right-hand box follows the nearest aircraft: operator, full type, tail number, and - for scheduled flights, via the free adsbdb lookup - its departure and destination.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>

@@ -65,13 +65,16 @@ reference and the rollback.
   and no account; the area is already covered by volunteers'
   receivers. Aircraft within the chosen range (25/50/100 nm of the
   centre point, KFLG by default) plot on range rings coloured by
-  altitude band — amber under 9,000 ft, green to 20,000, blue
-  above — with callsign labels for the nearest few and a detail
-  line for the closest one. The feed polls every 15–60 s (its own
-  cadence, independent of the weather refresh) and each aircraft is
-  dead-reckoned along its reported track and speed between polls,
-  so the dots glide. Callsign, type, altitude and speed come from
-  the feed; origin/destination is not in the free data.
+  altitude band — six steps from orange-red low to violet high.
+  The right third of the wall is an info box for the nearest
+  aircraft: operator (the airline, or a GA aircraft's registered
+  owner), the full aircraft type, the tail number, altitude,
+  speed, heading, vertical speed and distance — and, for scheduled
+  flights, the departure and destination airports from the free
+  adsbdb.com callsign lookup. The feed polls every 15–60 s (its
+  own cadence, independent of the weather refresh) and each
+  aircraft is dead-reckoned along its reported track and speed
+  between polls, so the dots glide.
 - **Splash screen** at boot with the admin page address.
 
 ## Design

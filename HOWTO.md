@@ -128,7 +128,12 @@ git run as root has no key and GitHub answers "Permission denied
     antenna — and a failed poll keeps the last picture rather than
     raising. The scope's centre defaults to KFLG's public
     coordinates on purpose: precise home coordinates belong in the
-    Pi's git-ignored config.json, never in this public repo.
+    Pi's git-ignored config.json, never in this public repo. The
+    info box's routes and owners come from a second free source,
+    adsbdb.com (callsign → airline + origin/destination; hex →
+    registered owner), looked up only for the nearest few aircraft
+    and cached for the session — a GA tail simply has no route,
+    which the box treats as normal, not as an error.
 
 ## Troubleshooting
 
