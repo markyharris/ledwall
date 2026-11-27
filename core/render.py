@@ -8,7 +8,7 @@ panels as one image.
 import json
 import os
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from .geo import Projection, CANVAS_W, CANVAS_H
 
@@ -167,21 +167,79 @@ def wx_kind(wx):
     return None
 
 
-def draw_icons(img, stations, phase=0):
-    """Draw icon glyphs centred on each (x, y, kind). Thunderstorm
-    bolts blink: shown on even phases, hidden on odd ones. Bolts are
-    drawn last so they sit on top of any neighbouring icon."""
+def draw_icons(img, stations, level=1.0, bolt_on=True):
+    """Draw icon glyphs centred on each (x, y, kind), with colours
+    scaled by level (0..1) for the fade animation. Bolts are drawn
+    last so they sit on top of any neighbouring icon, and are skipped
+    entirely when bolt_on is False (blink mode's off phase)."""
     d = ImageDraw.Draw(img)
+    scaled = {k: tuple(int(c * level) for c in rgb)
+              for k, rgb in ICON_COLORS.items()}
     for x, y, kind in sorted(stations, key=lambda s: s[2] == "TS"):
-        if kind == "TS" and phase % 2 == 1:
+        if kind == "TS" and not bolt_on:
             continue
         glyph = GLYPHS[kind]
-        color = ICON_COLORS[kind]
+        color = scaled[kind]
         ox, oy = x - len(glyph[0]) // 2, y - len(glyph) // 2
         for r, row in enumerate(glyph):
             for c, ch in enumerate(row):
                 if ch == "#":
                     d.point((ox + c, oy + r), fill=color)
+    return img
+
+
+_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+_FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+_LEGEND_LABELS = [
+    ("TS", "Thunderstorm"),
+    ("SN", "Snow"),
+    ("RA", "Rain / drizzle"),
+    ("FG", "Fog / mist"),
+    ("GR", "Hail"),
+]
+_CAT_LABELS = [
+    ("VFR", "VFR - visual"),
+    ("MVFR", "MVFR - marginal"),
+    ("IFR", "IFR - instrument"),
+    ("LIFR", "LIFR - low instrument"),
+    ("NONE", "No category reported"),
+]
+
+
+def _legend_font(path, size):
+    try:
+        return ImageFont.truetype(path, size)
+    except Exception:
+        return ImageFont.load_default()
+
+
+def render_legend():
+    """The admin page legend: flight-category colours + weather icons,
+    drawn from the same glyphs and colours the wall uses, so the two
+    can never drift apart."""
+    img = Image.new("RGB", (500, 224), LAND_FILL)
+    d = ImageDraw.Draw(img)
+    head = _legend_font(_FONT_BOLD, 12)
+    body = _legend_font(_FONT, 13)
+    d.text((12, 8), "FLIGHT CATEGORY", font=head, fill=(150, 160, 170))
+    d.text((262, 8), "WEATHER ICONS", font=head, fill=(150, 160, 170))
+    for i, (cat, label) in enumerate(_CAT_LABELS):
+        y = 34 + i * 38
+        d.rectangle([14, y + 2, 28, y + 16], fill=CATEGORY_COLORS[cat])
+        d.text((38, y + 2), label, font=body, fill=(220, 224, 230))
+    for i, (kind, label) in enumerate(_LEGEND_LABELS):
+        y = 34 + i * 38
+        glyph = GLYPHS[kind]
+        scale = 4
+        ox, oy = 268, y + 16 - len(glyph) * scale // 2
+        for r, row in enumerate(glyph):
+            for c, ch in enumerate(row):
+                if ch == "#":
+                    d.rectangle([ox + c * scale, oy + r * scale,
+                                 ox + c * scale + scale - 1,
+                                 oy + r * scale + scale - 1],
+                                fill=ICON_COLORS[kind])
+        d.text((308, y + 2), label, font=body, fill=(220, 224, 230))
     return img
 
 

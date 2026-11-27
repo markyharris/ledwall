@@ -22,6 +22,9 @@ from ..core import updater
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+ICON_KINDS = [("icon_ts", "Thunderstorm"), ("icon_sn", "Snow"),
+              ("icon_ra", "Rain"), ("icon_fg", "Fog"), ("icon_gr", "Hail")]
+
 PAGE = """<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -80,9 +83,23 @@ PAGE = """<!DOCTYPE html>
    <option value="1" {% if cfg.dot_size == 1 %}selected{% endif %}>1 LED</option>
    <option value="2" {% if cfg.dot_size != 1 %}selected{% endif %}>2x2 block</option>
   </select></label>
+ <label><input type="checkbox" name="show_icons" {% if cfg.show_icons %}checked{% endif %}>
+        Weather icons</label>
+ <div style="margin:2px 0 6px 18px">
+  {% for key, label in icon_kinds %}
+  <label style="display:inline-block;margin:0 10px 0 0"><input type="checkbox" name="{{ key }}" {% if cfg[key] %}checked{% endif %}> {{ label }}</label>{% endfor %}
+ </div>
+ <label>Icon animation
+  <select name="icon_anim">
+   <option value="fade" {% if cfg.icon_anim == "fade" %}selected{% endif %}>Fade in/out</option>
+   <option value="blink" {% if cfg.icon_anim == "blink" %}selected{% endif %}>Blink (lightning)</option>
+   <option value="steady" {% if cfg.icon_anim == "steady" %}selected{% endif %}>Steady</option>
+  </select></label>
  <label>Data refresh (seconds) <span class="val" id="rv">{{ cfg.refresh_s }}</span></label>
  <input type="range" name="refresh_s" min="60" max="1800" step="60" value="{{ cfg.refresh_s }}"
         oninput="document.getElementById('rv').textContent=this.value">
+ <div style="margin-top:10px"><img src="/legend.png" alt="Map legend"
+      style="max-width:100%;border:1px solid #333;border-radius:6px"></div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
@@ -129,7 +146,8 @@ def create_app(state, regions):
                 time.strftime("%H:%M:%S", time.localtime(state.last_fetch)))
         return render_template_string(
             PAGE, cfg=cfg, state=state, regions=regions, last_fetch=last,
-            ip=local_ip(), port=5000, msg=request.args.get("msg", ""))
+            ip=local_ip(), port=5000, msg=request.args.get("msg", ""),
+            icon_kinds=ICON_KINDS)
 
     @app.route("/api/status")
     def api_status():
@@ -160,6 +178,14 @@ def create_app(state, regions):
         buf.seek(0)
         return send_file(buf, mimetype="image/png")
 
+    @app.route("/legend.png")
+    def legend():
+        from ..core import render
+        buf = io.BytesIO()
+        render.render_legend().save(buf, format="PNG")
+        buf.seek(0)
+        return send_file(buf, mimetype="image/png")
+
     @app.route("/frame.png")
     def frame():
         if state.frame is None:
@@ -181,6 +207,12 @@ def create_app(state, regions):
                                                cfg.get("dot_size", 2)))
         if cfg["dot_size"] not in (1, 2):
             cfg["dot_size"] = 2
+        cfg["show_icons"] = "show_icons" in request.form
+        for key in ("icon_ts", "icon_sn", "icon_ra", "icon_fg", "icon_gr"):
+            cfg[key] = key in request.form
+        anim = request.form.get("icon_anim", cfg.get("icon_anim", "fade"))
+        cfg["icon_anim"] = anim if anim in ("fade", "blink", "steady") \
+            else "fade"
         cfg["refresh_s"] = int(request.form.get("refresh_s", cfg["refresh_s"]))
         try:
             config_mod.save(cfg)

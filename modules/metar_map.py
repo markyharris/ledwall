@@ -15,11 +15,16 @@ from .base import Module
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 
+# Icon fade curve over one 2-second cycle at the 4 Hz tick: a gentle
+# breathing pulse that never quite reaches invisible.
+FADE_LEVELS = (0.30, 0.48, 0.65, 0.83, 1.0, 0.83, 0.65, 0.48)
+
+
 class MetarMapModule(Module):
     name = "metar_map"
     title = "METAR Weather Map"
     refresh_s = 300
-    tick_s = 1.0  # 1 Hz redraw so the thunderstorm bolts can blink
+    tick_s = 0.25  # 4 Hz redraw for smooth icon fade / bolt blink
 
     def setup(self, config):
         super().setup(config)
@@ -47,7 +52,24 @@ class MetarMapModule(Module):
                 render.plot_weather(self.base, self.metars, region)
             self._dirty = False
         frame = self._dot_frame.copy()
-        render.draw_icons(frame, self._icon_stations, (ctx or 0) % 2)
+        if self.config.get("show_icons", True):
+            enabled = {"TS": self.config.get("icon_ts", True),
+                       "SN": self.config.get("icon_sn", True),
+                       "RA": self.config.get("icon_ra", True),
+                       "FG": self.config.get("icon_fg", True),
+                       "GR": self.config.get("icon_gr", True)}
+            stations = [s for s in self._icon_stations if enabled[s[2]]]
+            tick = ctx or 0
+            anim = self.config.get("icon_anim", "fade")
+            if anim == "fade":
+                level = FADE_LEVELS[tick % len(FADE_LEVELS)]
+                bolt_on = True
+            elif anim == "blink":
+                level, bolt_on = 1.0, (tick % 8) < 4
+            else:  # steady
+                level, bolt_on = 1.0, True
+            render.draw_icons(frame, stations, level=level,
+                              bolt_on=bolt_on)
         return frame
 
     def admin_fields(self):
