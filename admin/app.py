@@ -138,7 +138,7 @@ PAGE = """<!DOCTYPE html>
  <label>Relief strength <span class="val" id="pv">{{ cfg.pond_relief }}</span></label>
  <input type="range" name="pond_relief" min="0" max="100" value="{{ cfg.pond_relief }}"
         oninput="document.getElementById('pv').textContent=this.value">
- <div class="dim">How hard the ridges and troughs push out of the wall - the colour-depth effect plus slope shading. Tune it to your eyes and your room.</div>
+ <div class="dim">How hard the ridges and troughs push out of the wall - the color-depth effect plus slope shading. Tune it to your eyes and your room.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 
@@ -152,7 +152,7 @@ PAGE = """<!DOCTYPE html>
  <label>Turtle crosses every
   <input type="number" name="aq_turtle_s" min="0" max="600" step="10" value="{{ cfg.aq_turtle_s }}"> seconds (0 = never)</label>
  <label class="chk"><input type="checkbox" name="aq_rays" {% if cfg.aq_rays %}checked{% endif %}> Surface light rays</label>
- <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the same colour-depth effect as the pond, put to work.</div>
+ <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the same color-depth effect as the pond, put to work.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 
@@ -169,11 +169,11 @@ PAGE = """<!DOCTYPE html>
    <option value="30" {% if cfg.sw_refresh_s == 30 %}selected{% endif %}>Every 30 seconds</option>
    <option value="60" {% if cfg.sw_refresh_s == 60 %}selected{% endif %}>Every minute</option>
   </select></label>
- <label>Centre latitude <input type="text" name="sw_lat" value="{{ cfg.sw_lat }}" size="10"></label>
- <label>Centre longitude <input type="text" name="sw_lon" value="{{ cfg.sw_lon }}" size="10"></label>
- <label>Centre label <input type="text" name="sw_label" value="{{ cfg.sw_label }}" maxlength="6" size="8"></label>
- <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults centre on KFLG; the centre point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed, coloured by altitude from warm (low) to violet (high). The right-hand box follows the nearest aircraft: operator, full type, tail number, and - for scheduled flights, via the free adsbdb lookup - its departure and destination.</div>
- <div style="margin-top:8px">Target colours - altitude (MSL):</div>
+ <label>Center latitude <input type="text" name="sw_lat" value="{{ cfg.sw_lat }}" size="10"></label>
+ <label>Center longitude <input type="text" name="sw_lon" value="{{ cfg.sw_lon }}" size="10"></label>
+ <label>Center label <input type="text" name="sw_label" value="{{ cfg.sw_label }}" maxlength="6" size="8"></label>
+ <div class="dim">Live traffic from the free community ADS-B feed (adsb.lol) - no antenna, no account. Defaults center on KFLG; the center point lives only in this Pi's own settings. Dots glide between polls on each aircraft's reported track and speed, colored by altitude from warm (low) to violet (high). The right-hand box follows the nearest aircraft: operator, full type, tail number, and - for scheduled flights, via the free adsbdb lookup - its departure and destination.</div>
+ <div style="margin-top:8px">Target colors - altitude (MSL):</div>
  <div style="line-height:2">
   <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#FF6E28"></span> Below 8,000 ft</span> &nbsp;
   <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#FFBE00"></span> 8,000-14,000</span> &nbsp;
