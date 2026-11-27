@@ -63,6 +63,7 @@ DEFAULTS = {
     "mw_legend": True,
     "dn_shade": True,
     "dn_sun": True,
+    "atlas_stat_s": 35,
 }
 
 

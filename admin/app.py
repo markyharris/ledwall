@@ -45,6 +45,7 @@ PAGE = """<!DOCTYPE html>
 .a-radar h2{color:#7ee787}.a-aurora h2{color:#d18aff}
 .a-launch h2{color:#ffa94d}.a-worldwx h2{color:#6ebeff}
 .a-daynight h2{color:#ffcf5c}
+.a-atlas h2{color:#e07a5f}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -232,6 +233,12 @@ PAGE = """<!DOCTYPE html>
  <label class="chk"><input type="checkbox" name="dn_shade" {% if cfg.dn_shade %}checked{% endif %}> Shade the night side</label>
  <label class="chk"><input type="checkbox" name="dn_sun" {% if cfg.dn_sun %}checked{% endif %}> Sun marker where the sun is overhead</label>
  <div class="dim">The whole earth split by the sun: the bright line is the terminator - sunrise on one side, sunset on the other - computed from the sun's position and redrawn every two minutes as it sweeps west. The strip gives the subsolar point, where it is solar noon on Earth right now.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+<section class="a-atlas"><h2>World in Numbers</h2>
+ <label>Seconds per statistic
+  <input type="number" name="atlas_stat_s" min="15" max="120" step="5" value="{{ cfg.atlas_stat_s }}"> (each fades into the next)</label>
+ <div class="dim">The atlas: every country filled by a statistic - population, density, GDP per capita, life expectancy, forest, internet, urban share, median age, weather stations from the wall's own directory, and live earthquake counts. The figures (Our World in Data) are baked into the wall and refreshed about yearly; the earthquake counts update every half hour.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 <section class="a-launch"><h2>Rocket Launch Board</h2>
@@ -464,6 +471,12 @@ def create_app(state, regions, modules=None):
                                  cfg.get("splash_hold_s", 10)))))
         except (TypeError, ValueError):
             pass  # keep the previous hold
+        try:
+            cfg["atlas_stat_s"] = min(120, max(15, int(
+                request.form.get("atlas_stat_s",
+                                 cfg.get("atlas_stat_s", 35)))))
+        except (TypeError, ValueError):
+            pass  # keep the previous pace
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))

@@ -393,6 +393,24 @@ git run as root has no key and GitHub answers "Permission denied
     whenever the loop's own fetch is in flight, so the
     module on the wall always has the network first.
 
+29. **Bake reference data; fetch only what moves (Nov 27).**
+    World in Numbers colors every country by ten statistics,
+    but only one of them - earthquake counts - is fetched
+    live. The rest change yearly at most, so they are baked
+    into data/world_stats.json by a generator script, the
+    station directory's pattern: the Pi never touches the
+    slow source API, and the atlas works with the internet
+    down. Two generator lessons came free: the World Bank
+    API stalls for minutes at a time while Our World in
+    Data's CSV republication of the same series answers in
+    a second (generate from the fast mirror, credit the
+    underlying sources), and "latest value" must be capped
+    at the current year - several series carry projections
+    to 2100, and an uncapped latest is a forecast wearing a
+    fact's clothes. Inside the module, one statistic is a
+    row in a table (scale, ramp, formatter, source line), so
+    the next idea is an afternoon's row, not a new module.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
