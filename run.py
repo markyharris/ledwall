@@ -27,9 +27,12 @@ from ledwall.modules.aquarium import AquariumModule
 from ledwall.modules.metar_map import MetarMapModule
 from ledwall.modules.pond import PondModule
 from ledwall.modules.skywatch import SkywatchModule
+from ledwall.modules.sunmoon import SunMoonModule
+from ledwall.modules.tonight import TonightModule
 
 MODULES = {"metar_map": MetarMapModule, "pond": PondModule,
-           "aquarium": AquariumModule, "skywatch": SkywatchModule}
+           "aquarium": AquariumModule, "skywatch": SkywatchModule,
+           "tonight": TonightModule, "sunmoon": SunMoonModule}
 
 
 def update_checker(state):

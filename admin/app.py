@@ -40,6 +40,7 @@ PAGE = """<!DOCTYPE html>
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
  .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
  .a-sky h2{color:#ff8a5c}.a-rotate h2{color:#c792ff}
+ .a-tonight h2{color:#9db4ff}.a-sunmoon h2{color:#ffd76a}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -195,6 +196,20 @@ PAGE = """<!DOCTYPE html>
   <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#BE78FF"></span> Above 36,000</span> &nbsp;
   <span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:#787878"></span> Ground / no altitude</span>
  </div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+
+<section class="a-tonight"><h2>Tonight's Sky</h2>
+ <label class="chk"><input type="checkbox" name="sky_labels" {% if cfg.sky_labels %}checked{% endif %}> Star and planet labels</label>
+ <label class="chk"><input type="checkbox" name="sky_mw" {% if cfg.sky_mw %}checked{% endif %}> Milky Way band</label>
+ <div class="dim">The sky over the wall's location (the Overhead Aircraft center point), computed on the Pi - no feed. By night the dome is live; by day it previews tonight as it will look when astronomical twilight ends. The column lists sunset, full dark, moonrise and phase, and the planets that are up.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+
+<section class="a-sunmoon"><h2>Sun and Moon</h2>
+ <label class="chk"><input type="checkbox" name="sm_golden" {% if cfg.sm_golden %}checked{% endif %}> Golden-hour shading on the sun path</label>
+ <label class="chk"><input type="checkbox" name="sm_twilight" {% if cfg.sm_twilight %}checked{% endif %}> Twilight ticks (civil and astronomical)</label>
+ <div class="dim">Today's sun path with sunrise, sunset, day length and solar noon, and the moon at its true phase with its age and rise/set times - all computed on the Pi from the same location.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
@@ -357,6 +372,8 @@ def create_app(state, regions, modules=None):
             "sw_label", cfg.get("sw_label", "KFLG")) if ch.isalnum())
         if sw_label:
             cfg["sw_label"] = sw_label[:6].upper()
+        for key in ("sky_labels", "sky_mw", "sm_golden", "sm_twilight"):
+            cfg[key] = key in request.form
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))

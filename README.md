@@ -81,6 +81,26 @@ reference and the rollback.
   between polls, so the dots glide. Each dot trails a Garmin-style
   trend vector: its tip is where the aircraft will be in one
   minute at its current groundspeed.
+- **Module rotation**: the admin's Module Rotation section cycles
+  the wall through the picked modules, each for a chosen dwell,
+  leading with the "Show on the wall" module and crossfading
+  between them; the weather map's region rotation keeps working
+  while the map is up.
+- **Fifth module — Tonight's Sky**: a planisphere of the sky over
+  the house. Bright stars sized by magnitude (the brightest
+  twinkle), the Milky Way as a soft blurred wash along the
+  galactic equator, the planets as coloured dots with labels, and
+  the moon at its true phase. By night the dome is live; by day
+  it previews tonight at the end of astronomical twilight. The
+  side column lists sunset, full dark, moonrise and phase, and
+  the planets that are up.
+- **Sixth module — Sun and Moon**: the day's two clocks. Today's
+  sun path as an arc with sunrise/sunset, golden-hour shading,
+  twilight ticks, day length and solar noon, beside a big moon
+  disc at its true phase with its name, illumination, age and
+  rise/set times; the bottom strip shows tonight's dark window
+  and the next full moon. Both sky modules are computed on the
+  Pi by `core/astro.py` from the wall's location — no feeds.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -105,6 +125,7 @@ core/
   regions.py      CONUS/WORLD/EUROPE presets + every US state and
                   every country, generated from the boundary data
   metar.py        aviationweather.gov JSON fetcher (see HOWTO)
+  astro.py        sun/moon/planet/star computation (no feeds)
   render.py       base maps, dots, icons, label, clock, legend
   display.py      MatrixDisplay (hzeller) / FileDisplay (previews)
   config.py       config.json defaults, load, atomic save
@@ -117,6 +138,8 @@ modules/
   pond.py         the pond module: wave sim + relief shading
   aquarium.py     the aquarium module: layered depth-plane scene
   skywatch.py     the overhead-aircraft module: ADS-B scope
+  tonight.py      Tonight's Sky: planisphere dome + evening facts
+  sunmoon.py      Sun and Moon: sun-path arc + true-phase moon
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/

@@ -46,6 +46,10 @@ DEFAULTS = {
     "sw_lat": 35.1404,
     "sw_lon": -111.6694,
     "sw_label": "KFLG",
+    "sky_labels": True,
+    "sky_mw": True,
+    "sm_golden": True,
+    "sm_twilight": True,
 }
 
 

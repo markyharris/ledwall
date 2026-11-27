@@ -186,6 +186,28 @@ git run as root has no key and GitHub answers "Permission denied
     between map visits, so rotating away and back now restores
     the map instantly instead of refetching every lap.
 
+16. **The sky modules compute everything on the Pi (Nov 27).**
+    Tonight's Sky and Sun and Moon share `core/astro.py` — NOAA
+    solar series, Schlyter's lunar elements with the main
+    perturbation terms, JPL's approximate Keplerian planet
+    elements, a bright-star catalog, and a vector-based galactic
+    conversion for the Milky Way band. Verified against published
+    anchors before the modules were drawn: the full-moon instant
+    for Nov 24, 2026 came out 9 minutes off the almanac's, and
+    Flagstaff sunrise/sunset/noon altitude all land where they
+    should. Two traps worth remembering: right after perigee the
+    moon moves ~14 degrees a day, so illumination falls far
+    faster than the mean-motion guess (an early test "failure"
+    was the test's anchor, not the code); and a phase disc's
+    bright limb must be aimed with exact tangent-plane dot
+    products (`sun_screen_dir`), not a small-angle Δaz·cos(alt)
+    shortcut — at wide sun-moon separations the shortcut bends
+    the limb the wrong way. The moon disc itself is drawn
+    scanline by scanline from the terminator's half-ellipse
+    geometry at 3x and reduced. Both modules take the wall's
+    location from the Skywatch center settings (sw_lat/sw_lon),
+    so there is one place to correct the site's coordinates.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
