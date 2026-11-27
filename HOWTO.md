@@ -124,6 +124,12 @@ git run as root has no key and GitHub answers "Permission denied
     Skywatch syncs it from its own setting (15/30/60 s) and
     dead-reckons each aircraft along its reported track/speed
     between polls, capped at 90 s, so 30-second polls still glide.
+    The trend vector is a true one-minute vector (groundspeed ÷ 60
+    at the scope's scale, the Garmin convention), so its pixel
+    length changes with the range setting; labels are placed on
+    the side the vector is not pointing, with a knocked-out
+    backing patch so a vector passing behind a label never strikes
+    through its text.
     Its data is the free adsb.lol community feed — no key, no
     antenna — and a failed poll keeps the last picture rather than
     raising. The scope's centre defaults to KFLG's public

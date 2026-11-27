@@ -137,6 +137,13 @@ def _compass(brg):
 def _wrap(d, text, font, max_w):
     lines, cur = [], ""
     for word in text.split():
+        while d.textlength(word, font=font) > max_w and len(word) > 1:
+            # a single word wider than the box: hard-split it
+            cut = len(word) - 1
+            while d.textlength(word[:cut], font=font) > max_w:
+                cut -= 1
+            lines.append(word[:cut])
+            word = word[cut:]
         trial = (cur + " " + word).strip()
         if d.textlength(trial, font=font) <= max_w or not cur:
             cur = trial
@@ -146,6 +153,13 @@ def _wrap(d, text, font, max_w):
     if cur:
         lines.append(cur)
     return lines
+
+
+def _vector_px(gs, nm):
+    """Trend-vector length in pixels: where the aircraft will be
+    in one minute at its groundspeed, at the scope's scale - the
+    Garmin convention."""
+    return gs / 60.0 / nm * R
 
 
 def _get_json(url, timeout=8):
@@ -312,8 +326,7 @@ class SkywatchModule(Module):
                     d.text((x0 + 4, y), ln, font=FONT_S, fill=VALUE)
                     y += 11
         elif ga:
-            d.text((x0 + 4, y), "GENERAL AVIATION", font=FONT_S,
-                   fill=LABEL)
+            d.text((x0 + 4, y), "GA", font=FONT_S, fill=LABEL)
             y += 11
             if a["squawk"] == "1200":
                 d.text((x0 + 4, y), "VFR - SQK 1200", font=FONT_S,
@@ -390,8 +403,8 @@ class SkywatchModule(Module):
         label_spots = []
         for i, (a, x, y) in enumerate(shown):
             color = _band_color(a["alt"])
-            if a["track"] is not None and a["gs"]:
-                ln = max(5, min(13, a["gs"] / 40.0))
+            if a["track"] is not None and a["gs"] and a["gs"] > 20:
+                ln = min(R, _vector_px(a["gs"], nm))
                 rad = math.radians(a["track"])
                 d.line([(x, y), (x + ln * math.sin(rad),
                                  y - ln * math.cos(rad))],
@@ -404,15 +417,26 @@ class SkywatchModule(Module):
             else:
                 d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=color)
             if i < 2 and a["call"]:
-                # label right of the dot; if that would collide with
-                # the other label, try the left; else skip it
+                # label beside the dot, on the side the trend vector
+                # is NOT pointing (else the vector's tip hides
+                # behind the label); fall back to the other side on
+                # a collision, else skip the label
                 tw = d.textlength(a["call"], font=FONT_S)
-                for lx in (x + 6, x - 6 - tw):
+                sides = (x + 6, x - 6 - tw)
+                if a["track"] is not None and math.sin(
+                        math.radians(a["track"])) > 0.3:
+                    sides = sides[::-1]
+                for lx in sides:
                     if lx < 2 or lx + tw > BOX_X - 2:
                         continue
                     if any(abs(lx - ox) < 44 and abs(y - oy) < 12
                            for ox, oy in label_spots):
                         continue
+                    # knock out a backing patch so a trend vector
+                    # passing behind the label doesn't strike
+                    # through the text
+                    d.rectangle([lx - 1, y - 6, lx + tw + 1, y + 5],
+                                fill=(2, 6, 12))
                     d.text((lx, y - 5), a["call"], font=FONT_S,
                            fill=color)
                     label_spots.append((lx, y))

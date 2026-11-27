@@ -74,7 +74,9 @@ reference and the rollback.
   adsbdb.com callsign lookup. The feed polls every 15–60 s (its
   own cadence, independent of the weather refresh) and each
   aircraft is dead-reckoned along its reported track and speed
-  between polls, so the dots glide.
+  between polls, so the dots glide. Each dot trails a Garmin-style
+  trend vector: its tip is where the aircraft will be in one
+  minute at its current groundspeed.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
