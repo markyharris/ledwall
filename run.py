@@ -23,10 +23,12 @@ from ledwall.core.display import open_display
 from ledwall.core.geo import CANVAS_H, CANVAS_W
 from ledwall.core.regions import REGIONS
 from ledwall.core.state import AppState
+from ledwall.modules.aquarium import AquariumModule
 from ledwall.modules.metar_map import MetarMapModule
 from ledwall.modules.pond import PondModule
 
-MODULES = {"metar_map": MetarMapModule, "pond": PondModule}
+MODULES = {"metar_map": MetarMapModule, "pond": PondModule,
+           "aquarium": AquariumModule}
 
 
 def update_checker(state):

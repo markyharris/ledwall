@@ -51,6 +51,15 @@ reference and the rollback.
   troughs standing out of the wall. Rain rate, pebble interval and
   relief strength are all in the admin; pick the module itself from
   Display → "Show on the wall".
+- **Third module — the Aquarium**: a saltwater scene built for depth.
+  The set (water, rock ridge, sand, corals) is static; the life is
+  drawn back-to-front in three depth planes — far fish small, blue
+  and slow behind the rocks, near fish large and warm in front —
+  stacking occlusion, motion parallax, atmospheric blue shift and
+  the same ChromaDepth-ordered palette as the pond (reds nearest,
+  blues farthest). Swaying surface rays, caustic shimmer, rising
+  bubbles and a turtle that crosses every so often. Fish density,
+  turtle interval and the rays are all in the admin.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -85,6 +94,7 @@ modules/
   base.py         module contract
   metar_map.py    the weather map module
   pond.py         the pond module: wave sim + relief shading
+  aquarium.py     the aquarium module: layered depth-plane scene
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/

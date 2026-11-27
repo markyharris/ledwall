@@ -107,6 +107,16 @@ git run as root has no key and GitHub answers "Permission denied
     each cell a 2×2 block) — a full-res pure-Python wave sim would
     not hold 10 fps on the Pi — and schedules its drops on its own
     tick count, never the wall clock.
+11. **The aquarium (module 3) gets its depth from draw order, not
+    computation.** The static set is composed once; each frame is
+    base → rays → far fish → mid fish → turtle → bubbles → near
+    fish → foreground rocks, so nearer things simply paint over
+    farther ones (occlusion), each plane swims at its own speed
+    (parallax) with its own blue blend (atmospheric shift), and the
+    palette runs in ChromaDepth order — warm saturated colours near,
+    cool far — so the chromostereopsis works with the geometry
+    instead of against it. Sprites are pre-rendered per plane at
+    setup; a frame costs ~1 ms of compositing, leaving the Pi idle.
 
 ## Troubleshooting
 

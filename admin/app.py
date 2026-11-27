@@ -38,7 +38,7 @@ PAGE = """<!DOCTYPE html>
  section{border:1px solid #333;border-radius:8px;padding:12px 16px;margin:12px 0}
  section h2{margin:0 0 10px;font-size:16px}
  .a-display h2{color:#ffb000}.a-module h2{color:#4da3ff}
- .a-pond h2{color:#4dd8c8}
+ .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -138,6 +138,20 @@ PAGE = """<!DOCTYPE html>
  <input type="range" name="pond_relief" min="0" max="100" value="{{ cfg.pond_relief }}"
         oninput="document.getElementById('pv').textContent=this.value">
  <div class="dim">How hard the ridges and troughs push out of the wall - the colour-depth effect plus slope shading. Tune it to your eyes and your room.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+
+<section class="a-aquarium"><h2>Aquarium</h2>
+ <label>Fish
+  <select name="aq_fish">
+   <option value="quiet" {% if cfg.aq_fish == "quiet" %}selected{% endif %}>Quiet (a few fish)</option>
+   <option value="lively" {% if cfg.aq_fish == "lively" %}selected{% endif %}>Lively</option>
+   <option value="full" {% if cfg.aq_fish == "full" %}selected{% endif %}>Reef-full</option>
+  </select></label>
+ <label>Turtle crosses every
+  <input type="number" name="aq_turtle_s" min="0" max="600" step="10" value="{{ cfg.aq_turtle_s }}"> seconds (0 = never)</label>
+ <label class="chk"><input type="checkbox" name="aq_rays" {% if cfg.aq_rays %}checked{% endif %}> Surface light rays</label>
+ <div class="dim">The depth is layered: far fish swim bluer and slower behind the rocks, near fish run warm and large in front - the same colour-depth effect as the pond, put to work.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
 </form>
@@ -260,6 +274,17 @@ def create_app(state, regions, modules=None):
                                  cfg.get("pond_relief", 70)))))
         except ValueError:
             pass
+        aq_fish = request.form.get("aq_fish", cfg.get("aq_fish"))
+        if aq_fish in ("quiet", "lively", "full"):
+            cfg["aq_fish"] = aq_fish  # unknown densities are ignored
+        try:
+            turtle = int(request.form.get(
+                "aq_turtle_s", cfg.get("aq_turtle_s", 90)))
+        except ValueError:
+            turtle = cfg.get("aq_turtle_s", 90)
+        cfg["aq_turtle_s"] = 0 if turtle == 0 else min(
+            600, max(20, turtle))
+        cfg["aq_rays"] = "aq_rays" in request.form
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))

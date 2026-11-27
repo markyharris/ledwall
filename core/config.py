@@ -35,6 +35,9 @@ DEFAULTS = {
     "pond_drop_s": 2.5,
     "pond_pebble_s": 30,
     "pond_relief": 70,
+    "aq_fish": "lively",
+    "aq_turtle_s": 90,
+    "aq_rays": True,
 }
 
 
