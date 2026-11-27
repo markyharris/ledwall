@@ -221,6 +221,26 @@ git run as root has no key and GitHub answers "Permission denied
     When a control already exists on another of his projects,
     match its pattern instead of inventing a new one.
 
+18. **The ISS propagator is deliberately not SGP4 (Nov 27).**
+    `core/orbit.py` propagates the CelesTrak elements with the
+    secular J2 rates for the node and perigee plus the TLE's own
+    drag term — no third-party package on the Pi. Three
+    refinements were tried against the wheretheiss.at live
+    position from an 11-hour-old element set and measured, not
+    argued: SGP4's Kozai recovery of the mean motion made the
+    error worse (38 km vs 35), the textbook J2 term on the mean
+    anomaly doubled it again when combined with the recovery,
+    and dropping it entirely overshot the other way. The
+    combination that won — raw mean motion, no extra mean-anomaly
+    term — plus a geocentric-to-geodetic conversion on WGS84
+    (worth ~17 km of latitude and ~6 km of altitude by itself,
+    because the reference positions are geodetic) landed 3.8 km
+    from the live fix: a third of a pixel on the wall, and pass
+    times good to a few seconds. Altitude still reads ~7 km
+    high, a known cosmetic bias from the raw semi-major axis.
+    If the tracker ever needs better, the fix is a real SGP4
+    port, not more terms bolted onto this one.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

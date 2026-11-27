@@ -41,6 +41,7 @@ PAGE = """<!DOCTYPE html>
  .a-pond h2{color:#4dd8c8}.a-aquarium h2{color:#ffa040}
  .a-sky h2{color:#ff8a5c}.a-rotate h2{color:#c792ff}
  .a-tonight h2{color:#9db4ff}.a-sunmoon h2{color:#ffd76a}
+.a-iss h2{color:#96e1ff}.a-quakes h2{color:#ffbe78}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -213,6 +214,23 @@ PAGE = """<!DOCTYPE html>
  <div class="dim">Today's sun path with sunrise, sunset, day length and solar noon, and the moon at its true phase with its age and rise/set times - all computed on the Pi from the same location.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
+<section class="a-iss"><h2>ISS Tracker</h2>
+ <label class="chk"><input type="checkbox" name="iss_track" {% if cfg.iss_track %}checked{% endif %}> Ground track (the last and next 45 minutes)</label>
+ <label class="chk"><input type="checkbox" name="iss_footprint" {% if cfg.iss_footprint %}checked{% endif %}> Footprint circle (where the station is above the horizon)</label>
+ <label class="chk"><input type="checkbox" name="iss_night" {% if cfg.iss_night %}checked{% endif %}> Shade the night side of the Earth</label>
+ <div class="dim">The station's elements come from CelesTrak every six hours and are propagated on the Pi; the strip shows altitude, speed and position, plus the next pass over the Skywatch center point - or a live elevation while a pass is in progress.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+<section class="a-quakes"><h2>Earthquake Map</h2>
+ <label>Show events from
+  <select name="quake_period">
+   <option value="day" {% if cfg.quake_period == 'day' %}selected{% endif %}>the past 24 hours</option>
+   <option value="week" {% if cfg.quake_period == 'week' %}selected{% endif %}>the past 7 days</option>
+  </select></label>
+ <label class="chk"><input type="checkbox" name="quake_labels" {% if cfg.quake_labels %}checked{% endif %}> Label the three largest events</label>
+ <div class="dim">Every M4.5+ earthquake in the USGS feed, sized by magnitude and fading with age; M6+ events get a ring. The strip gives the count, the largest event and the most recent one.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
 </form>
 
 <section class="a-system"><h2>System</h2>
@@ -374,8 +392,12 @@ def create_app(state, regions, modules=None):
             "sw_label", cfg.get("sw_label", "KFLG")) if ch.isalnum())
         if sw_label:
             cfg["sw_label"] = sw_label[:6].upper()
-        for key in ("sky_labels", "sky_mw", "sm_golden", "sm_twilight"):
+        for key in ("sky_labels", "sky_mw", "sm_golden", "sm_twilight",
+                    "iss_track", "iss_footprint", "iss_night",
+                    "quake_labels"):
             cfg[key] = key in request.form
+        if request.form.get("quake_period") in ("day", "week"):
+            cfg["quake_period"] = request.form["quake_period"]
         cfg["brightness"] = int(request.form.get("brightness", cfg["brightness"]))
         cfg["night_brightness"] = int(request.form.get(
             "night_brightness", cfg["night_brightness"]))

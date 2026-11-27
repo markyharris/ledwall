@@ -102,6 +102,20 @@ reference and the rollback.
   rise/set times; the bottom strip shows tonight's dark window
   and the next full moon. Both sky modules are computed on the
   Pi by `core/astro.py` from the wall's location — no feeds.
+- **Seventh module — ISS Tracker**: the space station on the
+  world map — ground track for the last and next 45 minutes,
+  its visible-horizon footprint circle, the night side of the
+  Earth shaded from the sun's computed position, and a marker
+  for home. The strip shows altitude, speed and position, and
+  the next pass over the house (or a live elevation during a
+  pass). Elements come from CelesTrak every six hours and are
+  propagated on the Pi by `core/orbit.py`, a small J2
+  propagator validated against the live position.
+- **Eighth module — Earthquake Map**: every M4.5+ earthquake of
+  the past 24 hours or 7 days from the USGS feed, sized by
+  magnitude and fading with age; M6+ events get a ring and the
+  largest three are labelled. The strip gives the count, the
+  largest event and the most recent one.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -127,6 +141,7 @@ core/
                   every country, generated from the boundary data
   metar.py        aviationweather.gov JSON fetcher (see HOWTO)
   astro.py        sun/moon/planet/star computation (no feeds)
+  orbit.py        TLE parsing + J2 orbit propagation (ISS)
   render.py       base maps, dots, icons, label, clock, legend
   display.py      MatrixDisplay (hzeller) / FileDisplay (previews)
   config.py       config.json defaults, load, atomic save
@@ -141,6 +156,8 @@ modules/
   skywatch.py     the overhead-aircraft module: ADS-B scope
   tonight.py      Tonight's Sky: planisphere dome + evening facts
   sunmoon.py      Sun and Moon: sun-path arc + true-phase moon
+  iss.py          ISS Tracker: station, track and next pass
+  quakes.py       Earthquake Map: USGS M4.5+ events on the world
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/

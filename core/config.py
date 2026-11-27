@@ -51,6 +51,11 @@ DEFAULTS = {
     "sky_mw": True,
     "sm_golden": True,
     "sm_twilight": True,
+    "iss_track": True,
+    "iss_footprint": True,
+    "iss_night": True,
+    "quake_period": "week",
+    "quake_labels": True,
 }
 
 
