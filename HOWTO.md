@@ -270,6 +270,20 @@ git run as root has no key and GitHub answers "Permission denied
     new modules: the empty state is the one state that must
     never be patient.
 
+21. **Honor the precision the data actually has (Nov 27).**
+    Launch Library 2 dates many launches only to the day or
+    the month. Counting down to that date's midnight would
+    manufacture a T-0 nobody promised, so the Launch Board
+    shows NET <date> for coarse entries and counts down only
+    when the NET is precise to the hour or better. Same family
+    of honesty as the METAR age cutoff: never let a tidy
+    display imply more certainty than the feed carries. The
+    feed also keeps just-flown launches in "upcoming" briefly
+    with their status flipped to Success - filter on status,
+    not on the clock alone. And its free tier throttles at 15
+    requests/hour per address: poll like a guest (30 min),
+    keep the last good list, and never retry-storm a 429.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

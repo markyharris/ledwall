@@ -60,6 +60,8 @@ DEFAULTS = {
     "radar_rings": True,
     "aurora_oval": True,
     "aurora_wind": True,
+    "launch_sites": True,
+    "launch_provider": True,
 }
 
 

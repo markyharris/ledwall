@@ -43,6 +43,7 @@ PAGE = """<!DOCTYPE html>
  .a-tonight h2{color:#9db4ff}.a-sunmoon h2{color:#ffd76a}
 .a-iss h2{color:#96e1ff}.a-quakes h2{color:#ffbe78}
 .a-radar h2{color:#7ee787}.a-aurora h2{color:#d18aff}
+.a-launch h2{color:#ffa94d}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -235,6 +236,12 @@ PAGE = """<!DOCTYPE html>
  <div class="dim">The oval is NOAA's 30-60 minute aurora probability forecast; the strip adds the planetary K index and the live solar wind from the L1 monitors. At this latitude the aurora needs about Kp 7 to reach the northern horizon.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
+<section class="a-launch"><h2>Rocket Launch Board</h2>
+ <label class="chk"><input type="checkbox" name="launch_sites" {% if cfg.launch_sites %}checked{% endif %}> Launch-site map in the header (next pad ringed)</label>
+ <label class="chk"><input type="checkbox" name="launch_provider" {% if cfg.launch_provider %}checked{% endif %}> Provider name on the next-launch line</label>
+ <div class="dim">The next dozen launches worldwide from Launch Library 2 (The Space Devs), refreshed every 30 minutes. The header counts down to the next one in local time; a launch only dated to the day or month shows NET with its date instead of a countdown. Statuses: GO green, TBD/TBC amber, HOLD orange.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
 <section class="a-quakes"><h2>Earthquake Map</h2>
  <label>Show events from
   <select name="quake_period">
@@ -409,7 +416,8 @@ def create_app(state, regions, modules=None):
         for key in ("sky_labels", "sky_mw", "sm_golden", "sm_twilight",
                     "iss_track", "iss_footprint", "iss_night",
                     "quake_labels", "radar_animate", "radar_rings",
-                    "aurora_oval", "aurora_wind"):
+                    "aurora_oval", "aurora_wind",
+                    "launch_sites", "launch_provider"):
             cfg[key] = key in request.form
         if request.form.get("quake_period") in ("day", "week"):
             cfg["quake_period"] = request.form["quake_period"]
