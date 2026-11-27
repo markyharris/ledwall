@@ -56,6 +56,10 @@ DEFAULTS = {
     "iss_night": True,
     "quake_period": "week",
     "quake_labels": True,
+    "radar_animate": True,
+    "radar_rings": True,
+    "aurora_oval": True,
+    "aurora_wind": True,
 }
 
 

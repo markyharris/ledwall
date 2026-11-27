@@ -241,6 +241,23 @@ git run as root has no key and GitHub answers "Permission denied
     If the tracker ever needs better, the fix is a real SGP4
     port, not more terms bolted onto this one.
 
+19. **Radar tiles are web-mercator; the wall is not (Nov 27).**
+    The Live Radar module stitches RainViewer mosaic tiles
+    (standard web-mercator, like every tile service) but draws
+    its geography with the wall's equirectangular projection.
+    Composited naively, echoes would sit several pixels off the
+    state lines at the view's corners. The fix is a one-axis
+    warp: longitude is linear in both projections, so only the
+    rows need remapping — each output row samples the mercator
+    row for its latitude. Nine zoom-5 tiles cover the Southwest
+    view, and six frames loop for the animation. Two feed
+    lessons ride along: SWPC's old solar-wind product URLs are
+    gone (404) — the live data now comes from the RTSW 1-minute
+    JSON files, whose rows arrive unsorted and from more than
+    one spacecraft, so sort by time_tag and take the latest
+    non-null reading; and the OVATION aurora grid is lon
+    0..360, so wrap it before projecting.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

@@ -42,6 +42,7 @@ PAGE = """<!DOCTYPE html>
  .a-sky h2{color:#ff8a5c}.a-rotate h2{color:#c792ff}
  .a-tonight h2{color:#9db4ff}.a-sunmoon h2{color:#ffd76a}
 .a-iss h2{color:#96e1ff}.a-quakes h2{color:#ffbe78}
+.a-radar h2{color:#7ee787}.a-aurora h2{color:#d18aff}
  .a-system h2{color:#7dd87d}.a-status h2{color:#ff7dd8}
  label{display:block;margin:8px 0 2px}
  input[type=range]{width:260px;vertical-align:middle}
@@ -222,6 +223,18 @@ PAGE = """<!DOCTYPE html>
  <div class="dim">The station's elements come from CelesTrak every six hours and are propagated on the Pi; the strip shows altitude, speed and position, plus the next pass over the Skywatch center point - or a live elevation while a pass is in progress.</div>
  <div><button type="submit">Save settings</button></div>
 </section>
+<section class="a-radar"><h2>Live Radar</h2>
+ <label class="chk"><input type="checkbox" name="radar_animate" {% if cfg.radar_animate %}checked{% endif %}> Animate (loop the last hour of frames)</label>
+ <label class="chk"><input type="checkbox" name="radar_rings" {% if cfg.radar_rings %}checked{% endif %}> Range rings around home (50 / 100 / 150 miles)</label>
+ <div class="dim">NEXRAD reflectivity over the Southwest from the RainViewer mosaic, refreshed every five minutes. Cities and the amber home marker stay on top of the echoes so the geography reads under weather.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
+<section class="a-aurora"><h2>Aurora &amp; Space Weather</h2>
+ <label class="chk"><input type="checkbox" name="aurora_oval" {% if cfg.aurora_oval %}checked{% endif %}> Aurora forecast oval (NOAA OVATION model)</label>
+ <label class="chk"><input type="checkbox" name="aurora_wind" {% if cfg.aurora_wind %}checked{% endif %}> Solar wind line (speed and Bz)</label>
+ <div class="dim">The oval is NOAA's 30-60 minute aurora probability forecast; the strip adds the planetary K index and the live solar wind from the L1 monitors. At this latitude the aurora needs about Kp 7 to reach the northern horizon.</div>
+ <div><button type="submit">Save settings</button></div>
+</section>
 <section class="a-quakes"><h2>Earthquake Map</h2>
  <label>Show events from
   <select name="quake_period">
@@ -395,7 +408,8 @@ def create_app(state, regions, modules=None):
             cfg["sw_label"] = sw_label[:6].upper()
         for key in ("sky_labels", "sky_mw", "sm_golden", "sm_twilight",
                     "iss_track", "iss_footprint", "iss_night",
-                    "quake_labels"):
+                    "quake_labels", "radar_animate", "radar_rings",
+                    "aurora_oval", "aurora_wind"):
             cfg[key] = key in request.form
         if request.form.get("quake_period") in ("day", "week"):
             cfg["quake_period"] = request.form["quake_period"]

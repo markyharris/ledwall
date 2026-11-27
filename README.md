@@ -116,6 +116,17 @@ reference and the rollback.
   magnitude and fading with age; M6+ events get a ring and the
   largest three are labelled. The strip gives the count, the
   largest event and the most recent one.
+- **Ninth module — Live Radar**: NEXRAD reflectivity over the
+  Southwest from the RainViewer mosaic (no key), refreshed
+  every five minutes and animated as a loop of the last six
+  frames, reprojected onto the wall's state outlines. Range
+  rings at 50/100/150 miles around home and the region's
+  cities stay readable on top of the echoes.
+- **Tenth module — Aurora & Space Weather**: NOAA SWPC's
+  OVATION aurora probability plotted over the night-shaded
+  world map, with the planetary K index and the live solar
+  wind (speed and Bz from the L1 monitors) in the strip, plus
+  where the current Kp is visible from.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -158,6 +169,8 @@ modules/
   sunmoon.py      Sun and Moon: sun-path arc + true-phase moon
   iss.py          ISS Tracker: station, track and next pass
   quakes.py       Earthquake Map: USGS M4.5+ events on the world
+  radar.py        Live Radar: RainViewer mosaic over the Southwest
+  aurora.py       Aurora & Space Weather: OVATION oval + Kp + wind
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/
