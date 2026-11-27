@@ -129,3 +129,73 @@ def get_region(name):
     r = dict(REGIONS[name])
     r["name"] = name
     return r
+
+
+_COUNTS = None
+
+
+def _in_ring(x, y, ring):
+    inside = False
+    j = len(ring) - 1
+    for i in range(len(ring)):
+        xi, yi = ring[i]
+        xj, yj = ring[j]
+        if ((yi > y) != (yj > y)) and \
+                (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def _in_geom(x, y, geometry):
+    polys = geometry["coordinates"]
+    if geometry["type"] == "Polygon":
+        polys = [polys]
+    for poly in polys:
+        if _in_ring(x, y, poly[0]) and \
+                not any(_in_ring(x, y, hole) for hole in poly[1:]):
+            return True
+    return False
+
+
+def station_counts():
+    """How many of the station directory's reporting airports
+    fall inside each region - inside its own outline for state
+    and country views (the same outline the map clips dots to),
+    inside the box for the presets. Computed once per process
+    from the baked directory; the admin uses it to leave
+    regions with nothing to show off its pickers. Any failure
+    reports every region as occupied, so a counting error can
+    never hide a choice."""
+    global _COUNTS
+    if _COUNTS is not None:
+        return _COUNTS
+    counts = {key: 1 for key in REGIONS}
+    try:
+        with open(os.path.join(_DATA, "world_stations.json")) as f:
+            pts = [(s["lon"], s["lat"]) for s in json.load(f)]
+        geoms = {}
+        for fn in ("us-states.json", "world-countries.json"):
+            with open(os.path.join(_DATA, fn)) as f:
+                for feat in json.load(f)["features"]:
+                    geoms[(fn, feat["properties"].get("name"))] = \
+                        feat["geometry"]
+        for key, region in REGIONS.items():
+            geom = geoms.get((region.get("boundaries"),
+                              region.get("feature"))) \
+                if region.get("feature") else None
+            if geom is not None:
+                bb = _geom_bbox(geom)
+                counts[key] = sum(
+                    1 for x, y in pts
+                    if bb[0] <= x <= bb[2] and bb[1] <= y <= bb[3]
+                    and _in_geom(x, y, geom))
+            else:
+                b = region["bbox"]
+                counts[key] = sum(
+                    1 for x, y in pts
+                    if b[0] <= x <= b[2] and b[1] <= y <= b[3])
+    except Exception:
+        pass  # keep the all-occupied defaults
+    _COUNTS = counts
+    return counts

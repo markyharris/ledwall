@@ -284,6 +284,22 @@ git run as root has no key and GitHub answers "Permission denied
     requests/hour per address: poll like a guest (30 min),
     keep the last good list, and never retry-storm a 429.
 
+22. **Don't offer views with nothing in them (Nov 27).** The
+    region pickers listed all 232 regions, including the four
+    whose own outline contains no reporting airport at all
+    (Palestine, Djibouti, Western Sahara, French Southern &
+    Antarctic Lands) - a view of those is an empty outline.
+    `regions.station_counts()` counts the baked station
+    directory inside each region's own outline (the same
+    outline the map clips dots to, so the count is what the
+    wall would actually show); run.py hands the empty set to
+    the admin on the app state, and the pickers skip them -
+    except a region the owner is currently using, which stays
+    listed so saving the page can never silently drop a
+    setting. The map machinery keeps every region; only the
+    choices shrink. If counting ever fails, every region
+    reports occupied - an error must hide nothing.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |

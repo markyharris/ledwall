@@ -21,7 +21,7 @@ from ledwall.core import config as config_mod
 from ledwall.core import splash, updater
 from ledwall.core.display import open_display
 from ledwall.core.geo import CANVAS_H, CANVAS_W
-from ledwall.core.regions import REGIONS
+from ledwall.core.regions import REGIONS, station_counts
 from ledwall.core.state import AppState
 from ledwall.modules.aquarium import AquariumModule
 from ledwall.modules.aurora import AuroraModule
@@ -229,6 +229,15 @@ def main():
     if base is None:  # a module with no map of its own (the pond)
         base = Image.new("RGB", (CANVAS_W, CANVAS_H))
     display.show(splash.render_splash(base, local_ip()), "splash")
+
+    # Regions with no reporting airports of their own (Palestine,
+    # Western Sahara...) are left off the admin's region pickers;
+    # the map machinery itself is untouched.
+    try:
+        state.empty_regions = {
+            k for k, n in station_counts().items() if n == 0}
+    except Exception:
+        state.empty_regions = set()
 
     threading.Thread(target=serve,
                      args=(state, list(REGIONS.keys()),

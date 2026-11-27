@@ -104,18 +104,18 @@ PAGE = """<!DOCTYPE html>
 
 <section class="a-module"><h2>Weather Map</h2>
  <label>Region
-  <select name="region">{% for r in regions %}
+  <select name="region">{% for r in choices %}
    <option value="{{ r }}" {% if cfg.region == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
  <label>Home airport (flag)
   <input type="text" name="home_airport" value="{{ cfg.home_airport }}" size="6" maxlength="6"></label>
  <label>Rotate through regions (after the overview)
-  <select name="rotate_regions" multiple size="6">{% for r in regions %}
+  <select name="rotate_regions" multiple size="6">{% for r in choices %}
    <option value="{{ r }}" {% if r in cfg.rotate_regions %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
  <label>Show each region for
   <input type="number" name="rotate_s" min="10" max="3600" step="10" value="{{ cfg.rotate_s }}"> seconds</label>
- <div class="dim">The wall shows the Region above first - the whole picture, for context - then cycles through the picked regions, each for the interval below, and back to the overview.</div>
+ <div class="dim">The wall shows the Region above first - the whole picture, for context - then cycles through the picked regions, each for the interval below, and back to the overview. Regions with no reporting airports of their own are not listed.</div>
  <label>Station dot size
   <select name="dot_size">
    <option value="1" {% if cfg.dot_size == 1 %}selected{% endif %}>1 LED</option>
@@ -296,8 +296,17 @@ def create_app(state, regions, modules=None):
         cfg = config_mod.load()
         last = ("never" if not state.last_fetch else
                 time.strftime("%H:%M:%S", time.localtime(state.last_fetch)))
+        # The region pickers skip regions with no reporting
+        # airports - except any the owner is actually using, so
+        # saving the page can never silently drop a setting.
+        empty = getattr(state, "empty_regions", None) or set()
+        in_use = {cfg.get("region")} | set(cfg.get("rotate_regions",
+                                                  []))
+        choices = [r for r in regions
+                   if r not in empty or r in in_use]
         return render_template_string(
-            PAGE, cfg=cfg, state=state, regions=regions, modules=modules,
+            PAGE, cfg=cfg, state=state, regions=regions,
+            choices=choices, modules=modules,
             last_fetch=last, ip=local_ip(), port=5000,
             msg=request.args.get("msg", ""), icon_kinds=ICON_KINDS)
 
