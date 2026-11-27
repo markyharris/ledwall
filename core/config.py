@@ -14,6 +14,7 @@ DEFAULTS = {
     "module": "metar_map",
     "region": "CONUS",
     "dot_size": 2,
+    "show_label": True,
     "show_icons": True,
     "icon_ts": True,
     "icon_sn": True,

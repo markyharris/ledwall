@@ -8,6 +8,7 @@ station dots) tuned to how crowded that part of the world is.
 REGIONS = {
     "CONUS": {
         "title": "Continental US",
+        "label": "CONUS",
         "bbox": (-125.5, 23.0, -66.0, 50.5),
         "boundaries": "us-states.json",
         "min_sep": 3,

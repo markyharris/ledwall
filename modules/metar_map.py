@@ -56,6 +56,11 @@ class MetarMapModule(Module):
             region["min_sep"] = 3 if dot >= 2 else 2
             self._dot_frame, self.dot_count, self._icon_stations = \
                 render.plot_weather(self.base, self.metars, region)
+            if self.config.get("show_label", True):
+                render.draw_region_label(
+                    self._dot_frame, self.base,
+                    self.region.get("label") or self.region["name"],
+                    self._icon_stations)
             self._dirty = False
             # A bolt that was not there at the previous refresh earns
             # the entrance flash; one that merely persists does not.

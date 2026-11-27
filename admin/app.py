@@ -85,6 +85,8 @@ PAGE = """<!DOCTYPE html>
   </select></label>
  <label><input type="checkbox" name="show_icons" {% if cfg.show_icons %}checked{% endif %}>
         Weather icons</label>
+ <label><input type="checkbox" name="show_label" {% if cfg.show_label %}checked{% endif %}>
+        Region label (auto-placed in open space)</label>
  <div style="margin:2px 0 6px 18px">
   {% for key, label in icon_kinds %}
   <label style="display:inline-block;margin:0 10px 0 0"><input type="checkbox" name="{{ key }}" {% if cfg[key] %}checked{% endif %}> {{ label }}</label>{% endfor %}
@@ -208,6 +210,7 @@ def create_app(state, regions):
         if cfg["dot_size"] not in (1, 2):
             cfg["dot_size"] = 2
         cfg["show_icons"] = "show_icons" in request.form
+        cfg["show_label"] = "show_label" in request.form
         for key in ("icon_ts", "icon_sn", "icon_ra", "icon_fg", "icon_gr"):
             cfg[key] = key in request.form
         anim = request.form.get("icon_anim", cfg.get("icon_anim", "fade"))

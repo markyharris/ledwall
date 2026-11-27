@@ -8,7 +8,7 @@ panels as one image.
 import json
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from .geo import Projection, CANVAS_W, CANVAS_H
 
@@ -260,6 +260,47 @@ def render_legend():
                                 fill=ICON_COLORS[kind])
         d.text((308, y + 2), label, font=body, fill=(220, 224, 230))
     return img
+
+
+def draw_region_label(img, base, text, icon_stations=()):
+    """Draw the region/state/country name into the emptiest space on
+    the map (Mark's ask): candidate spots around the edges are scored
+    by how much weather sits in them - pixels differing from the base
+    map, plus a penalty per icon - and the quietest spot wins. The
+    choice is remade at every data refresh, so the label moves if its
+    spot fills with weather. Returns the (x, y) origin used."""
+    font = _legend_font(_FONT_BOLD, 12)
+    probe = ImageDraw.Draw(img)
+    tw = probe.textlength(text, font=font)
+    w, h = int(tw) + 10, 18
+    W, H = img.size
+    inset = 5
+    candidates = [  # preference order breaks ties
+        (inset, H - h - inset),            # bottom-left
+        (W - w - inset, H - h - inset),    # bottom-right
+        (inset, inset),                    # top-left
+        (W - w - inset, inset),            # top-right
+        ((W - w) // 2, H - h - inset),     # bottom-centre
+        ((W - w) // 2, inset),             # top-centre
+        (inset, (H - h) // 2),             # mid-left
+        (W - w - inset, (H - h) // 2),     # mid-right
+    ]
+    diff = ImageChops.difference(img, base).convert("L")
+    mask = diff.point(lambda v: 255 if v else 0)
+
+    def score(x, y):
+        box = mask.crop((x, y, x + w, y + h))
+        s = sum(box.histogram()[1:])
+        for ix, iy, _ in icon_stations:
+            if x - 3 <= ix <= x + w + 3 and y - 3 <= iy <= y + h + 3:
+                s += 60
+        return s
+
+    x, y = min(candidates, key=lambda p: score(*p))
+    d = ImageDraw.Draw(img)
+    d.text((x + 6, y + 4), text, font=font, fill=(0, 0, 0))
+    d.text((x + 5, y + 3), text, font=font, fill=(128, 148, 172))
+    return (x, y)
 
 
 def plot_weather(base, metars, region):
