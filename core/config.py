@@ -13,6 +13,8 @@ CONFIG_PATH = os.path.join(ROOT, "config.json")
 DEFAULTS = {
     "module": "metar_map",
     "region": "CONUS",
+    "rotate_regions": [],
+    "rotate_s": 120,
     "dot_size": 2,
     "show_label": True,
     "show_clock": True,

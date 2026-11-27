@@ -57,17 +57,51 @@ def effective_brightness(cfg, now=None):
     return cfg.get("brightness", 60)
 
 
-def apply_live_config(module, state, live):
+def desired_region(state, live, view, now):
+    """Which region belongs on the wall right now. With 2+ regions in
+    the rotation list, the wall cycles through them, each shown for
+    rotate_s seconds; otherwise the single Region setting rules.
+    `view` carries the rotation position between ticks."""
+    rotation = [r for r in live.get("rotate_regions") or []
+                if r in REGIONS]
+    if len(rotation) < 2:
+        view["rotation"] = None
+        return live["region"]
+    if view.get("rotation") != tuple(rotation):
+        view["rotation"] = tuple(rotation)
+        # A new list takes over from the current view when it can: if
+        # this region is in the list it keeps its full interval;
+        # otherwise the list starts at its first entry right away.
+        view["deadline"] = now + max(10, int(live.get("rotate_s", 120))) \
+            if state.region in rotation else 0.0
+    if state.region in rotation and now < view["deadline"]:
+        return state.region
+    idx = (rotation.index(state.region) + 1) % len(rotation) \
+        if state.region in rotation else 0
+    view["deadline"] = now + max(10, int(live.get("rotate_s", 120)))
+    return rotation[idx]
+
+
+def apply_live_config(module, state, live, view, now):
     """Adopt a freshly loaded config in the running loop. Settings go
-    straight to the module; a region (or module) change rebuilds the
-    module for the new view on the spot - no restart, the wall just
-    switches (Mark's ask). Returns (module, switched)."""
-    if live.get("region") != state.region or \
-            live.get("module") != state.module_name:
+    straight to the module; a region change - the owner's edit, or the
+    rotation arriving at its next region - rebuilds the module for the
+    new view on the spot, no restart (Mark's ask). The fetched data is
+    national and identical for every region, so it carries over and
+    the new view is just a re-projection. Returns (module, switched).
+    """
+    want = desired_region(state, live, view, now)
+    if live.get("module") != state.module_name or want != state.region:
         new_module = MODULES[live["module"]]()
-        new_module.setup(live)
+        carried = getattr(module, "metars", None)
+        setup_cfg = dict(live)
+        setup_cfg["region"] = want
+        new_module.setup(setup_cfg)
+        if carried:
+            new_module.metars = carried
+            new_module._dirty = True
         state.module_name = new_module.name
-        state.region = live["region"]
+        state.region = want
         return new_module, True
     module.config = live
     return module, False
@@ -92,12 +126,14 @@ def main():
 
     next_fetch = 0.0
     tick = 0
+    view = {}
     while True:
         try:
             cfg = config_mod.load()
-            module, switched = apply_live_config(module, state, cfg)
-            if switched:
-                next_fetch = 0.0  # fetch for the new view right away
+            module, switched = apply_live_config(
+                module, state, cfg, view, time.time())
+            if switched and not getattr(module, "metars", None):
+                next_fetch = 0.0  # nothing carried over: fetch at once
             if time.time() >= next_fetch:
                 module.refresh_data()
                 state.stations = len(module.metars)

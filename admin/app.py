@@ -52,6 +52,7 @@ PAGE = """<!DOCTYPE html>
 <section class="a-status"><h2>Status</h2>
  {% if msg %}<div class="ok" style="margin-bottom:8px">{{ msg }}</div>{% endif %}
  <div>Module: <b>{{ state.module_name }}</b> &middot; Region: <b>{{ state.region }}</b></div>
+ <div>Now showing: <b>{{ state.region }}</b></div>
  <div>Stations reporting: <b>{{ state.stations }}</b> &middot; Dots shown: <b>{{ state.dots }}</b></div>
  <div>Last data refresh: <b>{{ last_fetch }}</b></div>
  <div>Version: <b>{{ state.version }}</b> &middot;
@@ -83,6 +84,13 @@ PAGE = """<!DOCTYPE html>
   <select name="region">{% for r in regions %}
    <option value="{{ r }}" {% if cfg.region == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
   </select></label>
+ <label>Rotate through regions (pick 2 or more)
+  <select name="rotate_regions" multiple size="6">{% for r in regions %}
+   <option value="{{ r }}" {% if r in cfg.rotate_regions %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select></label>
+ <label>Show each region for
+  <input type="number" name="rotate_s" min="10" max="3600" step="10" value="{{ cfg.rotate_s }}"> seconds</label>
+ <div class="dim">While 2 or more regions are picked, the wall rotates through them and the Region choice above is paused.</div>
  <label>Station dot size
   <select name="dot_size">
    <option value="1" {% if cfg.dot_size == 1 %}selected{% endif %}>1 LED</option>
@@ -216,6 +224,15 @@ def create_app(state, regions):
             # an unreadable time keeps the previous value, never junk
         cfg["show_clock"] = "show_clock" in request.form
         cfg["region"] = request.form.get("region", cfg["region"])
+        cfg["rotate_regions"] = [
+            r for r in request.form.getlist("rotate_regions")
+            if r in regions]
+        try:
+            rotate_s = int(request.form.get(
+                "rotate_s", cfg.get("rotate_s", 120)))
+        except ValueError:
+            rotate_s = cfg.get("rotate_s", 120)
+        cfg["rotate_s"] = min(3600, max(10, rotate_s))
         cfg["dot_size"] = int(request.form.get("dot_size",
                                                cfg.get("dot_size", 2)))
         if cfg["dot_size"] not in (1, 2):

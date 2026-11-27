@@ -13,7 +13,10 @@ reference and the rollback.
   thinning so the worst weather wins a crowded pixel.
 - **Regions**: the whole CONUS, or any US state zoomed to fill the
   wall (states are generated from the boundary data; a state view
-  clips to its own outline and shows only its own airports).
+  clips to its own outline and shows only its own airports). Pick 2+
+  regions in the admin and the wall **rotates** through them, each
+  for a configurable number of seconds; region changes — manual or
+  rotating — apply live, no restart.
 - **Weather icons** over the stations reporting them — thunderstorm,
   snow, rain/drizzle, fog/mist, hail — each kind individually
   toggleable, with a fade (4-second breathing cycle, hot peak), blink,
