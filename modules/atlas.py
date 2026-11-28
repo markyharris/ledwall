@@ -139,7 +139,12 @@ def _lerp(lo, hi, t):
 class AtlasModule(Module):
     name = "atlas"
     title = "World in Numbers"
-    tick_s = 1
+    # 10 fps like the aquarium: the crossfade between statistics
+    # lasts 1.2 s, and at a 1 s tick it was sampled about once -
+    # whether a transition melted or jumped depended on where
+    # the ticks happened to land, and the last-to-first wrap
+    # landed between samples and cut (Mark's catch, Nov 27).
+    tick_s = 0.1
     PERSIST = ("quakes", "_qversion")
 
     def setup(self, config):
@@ -310,7 +315,10 @@ class AtlasModule(Module):
     # -- the cycle -------------------------------------------------
 
     def draw(self, ctx):
-        stat_s = float(self.cfg.get("atlas_stat_s", 35))
+        # the loop keeps module.config fresh on every pass;
+        # setup's copy is the fallback for previews and tests
+        cfg = getattr(self, "config", None) or self.cfg
+        stat_s = float(cfg.get("atlas_stat_s", 35))
         elapsed = time.time() - self.t0
         idx = int(elapsed // stat_s) % len(STATS)
         phase = elapsed % stat_s
