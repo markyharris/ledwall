@@ -8,7 +8,7 @@ reference and the rollback.
 
 ## What it shows
 
-- **Flight-category dots** in the classic colours — VFR green, MVFR
+- **Flight-category dots** in the classic colors — VFR green, MVFR
   blue, IFR red, LIFR magenta, no-category grey — plotted by priority
   thinning so the worst weather wins a crowded pixel.
 - **Regions**: 232 of them. The whole CONUS, any US state, the whole
@@ -55,7 +55,7 @@ reference and the rollback.
   sky, from the free community ADS-B feed (adsb.lol) — no antenna
   and no account; the area is already covered by volunteers'
   receivers. Aircraft within the chosen range (25/50/100 nm of the
-  centre point, KFLG by default) plot on range rings coloured by
+  center point, KFLG by default) plot on range rings colored by
   altitude band — six steps from orange-red low to violet high.
   The right third of the wall is an info box for the nearest
   aircraft: operator (the airline, or a GA aircraft's registered
@@ -81,7 +81,7 @@ reference and the rollback.
 - **Fourth module — Tonight's Sky**: a planisphere of the sky over
   the house. Bright stars sized by magnitude (the brightest
   twinkle), the Milky Way as a soft blurred wash along the
-  galactic equator, the planets as coloured dots with labels, and
+  galactic equator, the planets as colored dots with labels, and
   the moon at its true phase. By night the dome is live; by day
   it previews tonight at the end of astronomical twilight. The
   side column lists sunset, full dark, moonrise and phase, and
@@ -105,7 +105,7 @@ reference and the rollback.
 - **Seventh module — Earthquake Map**: every M4.5+ earthquake of
   the past 24 hours or 7 days from the USGS feed, sized by
   magnitude and fading with age; M6+ events get a ring and the
-  largest three are labelled. The strip gives the count, the
+  largest three are labeled. The strip gives the count, the
   largest event and the most recent one.
 - **Eighth module — Live Radar**: NEXRAD reflectivity over the
   Southwest from the RainViewer mosaic (no key), refreshed
@@ -118,6 +118,32 @@ reference and the rollback.
   world map, with the planetary K index and the live solar
   wind (speed and Bz from the L1 monitors) in the strip, plus
   where the current Kp is visible from.
+- **Tenth module — Rocket Launch Board**: the world's upcoming
+  launches from the Launch Library 2 feed — provider, vehicle,
+  launch site and NET time for each, with a live countdown to
+  the soonest. The free feed throttles hard, so the board
+  polls at a polite pace and keeps its last good list.
+- **Eleventh module — World Weather**: the weather map's
+  companion — every reporting station on Earth as a
+  single-LED flight-category dot on the darkened world base,
+  worst category winning a crowded pixel. The strip gives
+  the reporting count, the thunderstorm count and the
+  category tallies; legend and home flag are toggles.
+- **Twelfth module — Day & Night**: the world map shaded by
+  the sun — the day side brightened, the night side darkened,
+  a soft twilight band along the terminator, and a marker
+  where the sun stands directly overhead. The strip names
+  that point and the Zulu time. Computed on the Pi by
+  `core/astro.py` — no feeds.
+- **Thirteenth module — World in Numbers**: the atlas. Every
+  country filled from a color ramp by a statistic, each
+  holding for a configurable time before crossfading to the
+  next: population, density, GDP per capita, life expectancy,
+  forest area, internet users, urban share and median age
+  (baked from Our World in Data), weather-station counts
+  from the wall's own directory, and live earthquake counts
+  from the USGS feed. A legend bar gives the scale's ends,
+  and the strip names the top three countries.
 - **Splash screen** at boot with the admin page address.
 
 ## Design
@@ -127,7 +153,7 @@ reference and the rollback.
   rendered once per region and cached; only the weather layer changes
   per refresh.
 - **Modules, painter-clock style.** `modules/` holds one full-screen
-  behaviour per file behind a small interface (setup / refresh_data /
+  behavior per file behind a small interface (setup / refresh_data /
   draw, tick-driven for animation). `metar_map` is module #1.
 - **Settings live in `config.json`**, which is git-ignored so a pull
   can never clobber them (the v1 data.txt lesson).
@@ -161,6 +187,10 @@ modules/
   quakes.py       Earthquake Map: USGS M4.5+ events on the world
   radar.py        Live Radar: RainViewer mosaic over the Southwest
   aurora.py       Aurora & Space Weather: OVATION oval + Kp + wind
+  launches.py     Rocket Launch Board: upcoming launches, countdowns
+  metar_world.py  World Weather: every station on Earth as a dot
+  daynight.py     Day & Night: the sun's shading on the world map
+  atlas.py        World in Numbers: countries colored by statistics
 admin/
   app.py          Flask admin on :5000 (painter-clock v24 pattern)
 data/
@@ -170,6 +200,8 @@ data/
                   public domain, slimmed by scripts/build_world_data.py)
   world_stations.json   the ~7,750 METAR stations AWC carries,
                   selected per region by bounding box
+  world_stats.json  per-country statistics for World in Numbers
+                  (Our World in Data, baked by a desktop generator)
 scripts/
   build_world_data.py   rebuilds the two world data files from their
                   public sources (desktop only, never on the Pi)
@@ -191,10 +223,10 @@ Defaults: region CONUS, 2×2 dots, icons on with fade animation, label
 and clock on, brightness 60, refresh 300 s, night mode off at 25
 (night hours 22:00–06:00 when enabled).
 
-## Standing build rules honoured
+## Standing build rules honored
 
 - Admin page in the painter-clock v24 pattern: sliders with live
-  readouts, project icon as favicon and beside the title, colour-coded
+  readouts, project icon as favicon and beside the title, color-coded
   sections, every action returns to the admin page.
 - Splash screen shows the admin IP after boot.
 - Hourly git update *check* that only flags; "Update now" is a button.
